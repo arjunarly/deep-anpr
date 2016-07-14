@@ -248,11 +248,11 @@ def generate_im(char_ims, num_bg_images):
     M, out_of_bounds = make_affine_transform(
                             from_shape=plate.shape,
                             to_shape=bg.shape,
-                            min_scale=0.6,
-                            max_scale=0.875,
-                            rotation_variation=1.0,
-                            scale_variation=1.5,
-                            translation_variation=1.2)
+                            min_scale=0.7,
+                            max_scale=0.9,
+                            rotation_variation=0.4,
+                            scale_variation=0.2,
+                           translation_variation=1.0)
     plate = cv2.warpAffine(plate, M, (bg.shape[1], bg.shape[0]))
     plate_mask = cv2.warpAffine(plate_mask, M, (bg.shape[1], bg.shape[0]))
 
