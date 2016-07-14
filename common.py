@@ -25,7 +25,6 @@ Definitions that don't fit elsewhere.
 
 __all__ = (
     'DIGITS',
-    'LETTERS',
     'CHARS',
     'sigmoid',
     'softmax',
@@ -35,8 +34,9 @@ import numpy
 
 
 DIGITS = "0123456789"
-LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-CHARS = LETTERS + DIGITS
+#LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+#LETTERS = ""
+CHARS = DIGITS
 
 def softmax(a):
     exps = numpy.exp(a.astype(numpy.float64))
