@@ -208,9 +208,9 @@ def train(learn_rate, report_steps, batch_size, initial_weights=None):
         if batch_idx % report_steps == 0:
             do_report()
 
-    # gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.95)
+    gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.95)
     # with tf.Session(config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
-    with tf.Session() as sess:
+    with tf.Session(config=tf.ConfigProto(log_device_placement=True, gpu_options=gpu_options)) as sess:
         sess.run(init)
         if initial_weights is not None:
             sess.run(assign_ops)
