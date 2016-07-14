@@ -32,16 +32,17 @@ __all__ = (
 
 import numpy
 
-
 DIGITS = "0123456789"
-#LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-#LETTERS = ""
+# LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+# LETTERS = ""
 CHARS = DIGITS
+LENGTH = 16
+
 
 def softmax(a):
     exps = numpy.exp(a.astype(numpy.float64))
     return exps / numpy.sum(exps, axis=-1)[:, numpy.newaxis]
 
-def sigmoid(a):
-  return 1. / (1. + numpy.exp(-a))
 
+def sigmoid(a):
+    return 1. / (1. + numpy.exp(-a))
