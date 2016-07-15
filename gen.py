@@ -48,7 +48,7 @@ import common
 fonts = ["fonts/Farrington-7B-Qiqi.ttf", "fonts/Arial.ttf", "fonts/times.ttf"]
 FONT_HEIGHT = 16  # Pixel size to which the chars are resized
 
-OUTPUT_SHAPE = (64, 128)
+OUTPUT_SHAPE = (64, 200)
 
 CHARS = common.CHARS + " "
 
