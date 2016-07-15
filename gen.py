@@ -59,7 +59,7 @@ def make_char_ims(output_height, font):
     height = max(font.getsize(d)[1] for d in CHARS)
     for c in CHARS:
         width = font.getsize(c)[0]
-        im = Image.new("RGB", (width, height), (0, 0, 0))
+        im = Image.new("RGBA", (width, height), (0, 0, 0))
         draw = ImageDraw.Draw(im)
         draw.text((0, 0), c, (255, 255, 255), font=font)
         scale = float(output_height) / height
