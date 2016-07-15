@@ -27,11 +27,9 @@ Generate training and test images.
 
 """
 
-
 __all__ = (
     'generate_ims',
 )
-
 
 import math
 import os
@@ -76,21 +74,21 @@ def make_char_ims(output_height):
 def euler_to_mat(yaw, pitch, roll):
     # Rotate clockwise about the Y-axis
     c, s = math.cos(yaw), math.sin(yaw)
-    M = numpy.matrix([[  c, 0.,  s],
-                      [ 0., 1., 0.],
-                      [ -s, 0.,  c]])
+    M = numpy.matrix([[c, 0., s],
+                      [0., 1., 0.],
+                      [-s, 0., c]])
 
     # Rotate clockwise about the X-axis
     c, s = math.cos(pitch), math.sin(pitch)
-    M = numpy.matrix([[ 1., 0., 0.],
-                      [ 0.,  c, -s],
-                      [ 0.,  s,  c]]) * M
+    M = numpy.matrix([[1., 0., 0.],
+                      [0., c, -s],
+                      [0., s, c]]) * M
 
     # Rotate clockwise about the Z-axis
     c, s = math.cos(roll), math.sin(roll)
-    M = numpy.matrix([[  c, -s, 0.],
-                      [  s,  c, 0.],
-                      [ 0., 0., 1.]]) * M
+    M = numpy.matrix([[c, -s, 0.],
+                      [s, c, 0.],
+                      [0., 0., 1.]]) * M
 
     return M
 
@@ -106,7 +104,7 @@ def pick_colors():
     return text_color, plate_color
 
 
-def make_affine_transform(from_shape, to_shape, 
+def make_affine_transform(from_shape, to_shape,
                           min_scale, max_scale,
                           scale_variation=1.0,
                           rotation_variation=1.0,
@@ -140,7 +138,7 @@ def make_affine_transform(from_shape, to_shape,
 
     # Set the translation such that the skewed and scaled image falls within
     # the output shape's bounds.
-    trans = (numpy.random.random((2,1)) - 0.5) * translation_variation
+    trans = (numpy.random.random((2, 1)) - 0.5) * translation_variation
     trans = ((2.0 * trans) ** 5.0) / 2.0
     if numpy.any(trans < -0.5) or numpy.any(trans > 0.5):
         out_of_bounds = True
@@ -157,24 +155,10 @@ def make_affine_transform(from_shape, to_shape,
 
 
 def generate_code():
-    return "{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}".format(
-        random.choice(common.DIGITS),
-        random.choice(common.DIGITS),
-        random.choice(common.DIGITS),
-        random.choice(common.DIGITS),
-        random.choice(common.DIGITS),
-        random.choice(common.DIGITS),
-        random.choice(common.DIGITS),
-        random.choice(common.DIGITS),
-        random.choice(common.DIGITS),
-        random.choice(common.DIGITS),
-        random.choice(common.DIGITS),
-        random.choice(common.DIGITS),
-        random.choice(common.DIGITS),
-        random.choice(common.DIGITS),
-        random.choice(common.DIGITS),
-        random.choice(common.DIGITS)
-    )
+    f = ""
+    for i in range(common.LENGTH):
+        f = f + random.choice(common.DIGITS)
+    return f
 
 
 def rounded_rect(shape, radius):
@@ -197,7 +181,6 @@ def generate_plate(font_height, char_ims):
     v_padding = random.uniform(0.1, 0.3) * font_height
     spacing = font_height * random.uniform(-0.05, 0.05)
     radius = 1 + int(font_height * 0.1 * random.random())
-
     code = generate_code()
     text_width = sum(char_ims[c].shape[1] for c in code)
     text_width += (len(code) - 1) * spacing
@@ -206,11 +189,11 @@ def generate_plate(font_height, char_ims):
                  int(text_width + h_padding * 2))
 
     text_color, plate_color = pick_colors()
-    
+
     text_mask = numpy.zeros(out_shape)
-    
+
     x = h_padding
-    y = v_padding 
+    y = v_padding
     for c in code:
         char_im = char_ims[c]
         ix, iy = int(x), int(y)
@@ -220,17 +203,18 @@ def generate_plate(font_height, char_ims):
     plate = (numpy.ones(out_shape) * plate_color * (1. - text_mask) +
              numpy.ones(out_shape) * text_color * text_mask)
 
+   # plate =  (numpy.ones(out_shape) - text_mask)
     return plate, rounded_rect(out_shape, radius), code.replace(" ", "")
 
 
 def generate_bg(num_bg_images):
     found = False
     while not found:
-        #fname = "bgs/{:08d}.jpg".format(random.randint(0, num_bg_images - 1))
+        # fname = "bgs/{:08d}.jpg".format(random.randint(0, num_bg_images - 1))
         fname = "bgs/12345678.jpg"
         bg = cv2.imread(fname, cv2.CV_LOAD_IMAGE_GRAYSCALE) / 255.
         if (bg.shape[1] >= OUTPUT_SHAPE[1] and
-            bg.shape[0] >= OUTPUT_SHAPE[0]):
+                    bg.shape[0] >= OUTPUT_SHAPE[0]):
             found = True
 
     x = random.randint(0, bg.shape[1] - OUTPUT_SHAPE[1])
@@ -244,20 +228,21 @@ def generate_im(char_ims, num_bg_images):
     bg = generate_bg(num_bg_images)
 
     plate, plate_mask, code = generate_plate(FONT_HEIGHT, char_ims)
-    
+
     M, out_of_bounds = make_affine_transform(
-                            from_shape=plate.shape,
-                            to_shape=bg.shape,
-                            min_scale=0.7,
-                            max_scale=0.9,
-                            rotation_variation=0.4,
-                            scale_variation=0.2,
-                           translation_variation=1.0)
+        from_shape=plate.shape,
+        to_shape=bg.shape,
+        min_scale=0.7,
+        max_scale=0.9,
+        rotation_variation=0.4,
+        scale_variation=0.2,
+        translation_variation=1.0)
     plate = cv2.warpAffine(plate, M, (bg.shape[1], bg.shape[0]))
     plate_mask = cv2.warpAffine(plate_mask, M, (bg.shape[1], bg.shape[0]))
 
-    out = plate * plate_mask + bg * (1.0 - plate_mask)
-
+    # out = plate * plate_mask + bg * (1.0 - plate_mask)
+    # out = plate * plate_mask + bg * (1.0 - plate_mask)
+    out = plate * plate_mask + bg * (1 - plate_mask)
     out = cv2.resize(out, (OUTPUT_SHAPE[1], OUTPUT_SHAPE[0]))
 
     out += numpy.random.normal(scale=0.05, size=out.shape)
@@ -287,11 +272,10 @@ def generate_ims(num_images):
 if __name__ == "__main__":
     if not os.path.exists("test"):
         os.mkdir("test")
-    #im_gen = generate_ims(int(sys.argv[1]))
+    # im_gen = generate_ims(int(sys.argv[1]))
     im_gen = generate_ims(200)
     for img_idx, (im, c, p) in enumerate(im_gen):
         fname = "test/{:08d}_{}_{}.png".format(img_idx, c,
                                                "1" if p else "0")
         print fname
         cv2.imwrite(fname, im * 255.)
-
