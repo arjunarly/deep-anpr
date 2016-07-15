@@ -46,29 +46,32 @@ from PIL import ImageFont
 import common
 
 fonts = ["fonts/Farrington-7B-Qiqi.ttf", "fonts/Arial.ttf", "fonts/times.ttf"]
-FONT_HEIGHT = 32  # Pixel size to which the chars are resized
+FONT_HEIGHT = 16  # Pixel size to which the chars are resized
 
 OUTPUT_SHAPE = (64, 128)
 
 CHARS = common.CHARS + " "
 
 
-def make_char_ims(output_height):
+def make_char_ims(output_height, font):
     font_size = output_height * 4
-
-    font = ImageFont.truetype(random.choice(fonts), font_size)
-
-    height = max(font.getsize(c)[1] for c in CHARS)
-
+    font = ImageFont.truetype(font, font_size)
+    height = max(font.getsize(d)[1] for d in CHARS)
     for c in CHARS:
         width = font.getsize(c)[0]
         im = Image.new("RGB", (width, height), (0, 0, 0))
-
         draw = ImageDraw.Draw(im)
         draw.text((0, 0), c, (255, 255, 255), font=font)
         scale = float(output_height) / height
         im = im.resize((int(width * scale), output_height), Image.ANTIALIAS)
         yield c, numpy.array(im)[:, :, 0].astype(numpy.float32) / 255.
+
+
+def get_all_font_char_ims(out_height):
+    result = []
+    for font in fonts:
+        result.append(dict(make_char_ims(out_height, font)))
+    return result
 
 
 def euler_to_mat(yaw, pitch, roll):
@@ -267,17 +270,17 @@ def generate_ims(num_images):
 
     """
     variation = 1.0
-    char_ims = dict(make_char_ims(FONT_HEIGHT))
+    char_ims = get_all_font_char_ims(FONT_HEIGHT)
     num_bg_images = len(os.listdir("bgs"))
     for i in range(num_images):
-        yield generate_im(char_ims, num_bg_images)
+        yield generate_im(random.choice(char_ims), num_bg_images)
 
 
 if __name__ == "__main__":
     if not os.path.exists("test"):
         os.mkdir("test")
     # im_gen = generate_ims(int(sys.argv[1]))
-    im_gen = generate_ims(1000)
+    im_gen = generate_ims(5000)
     for img_idx, (im, c, p) in enumerate(im_gen):
         fname = "test/{:08d}_{}_{}.png".format(img_idx, c,
                                                "1" if p else "0")
