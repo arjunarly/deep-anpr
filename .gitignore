@@ -12,3 +12,4 @@ gen.pyc
 model.pyc
 test/
 weights.npz
+*.jpg
