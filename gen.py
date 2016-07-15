@@ -156,7 +156,11 @@ def make_affine_transform(from_shape, to_shape,
 
 def generate_code():
     f = ""
+    append_blank = random.choice([True, False])
+
     for i in range(common.LENGTH):
+        if 0 == i % 4 and append_blank:
+            f = f + ' '
         f = f + random.choice(common.DIGITS)
     return f
 
@@ -203,7 +207,7 @@ def generate_plate(font_height, char_ims):
     plate = (numpy.ones(out_shape) * plate_color * (1. - text_mask) +
              numpy.ones(out_shape) * text_color * text_mask)
 
-   # plate =  (numpy.ones(out_shape) - text_mask)
+    # plate =  (numpy.ones(out_shape) - text_mask)
     return plate, rounded_rect(out_shape, radius), code.replace(" ", "")
 
 
