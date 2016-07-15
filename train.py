@@ -47,6 +47,7 @@ import gen
 import model
 
 
+
 def code_to_vec(p, code):
     def char_to_vec(c):
         y = numpy.zeros((len(common.CHARS),))
