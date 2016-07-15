@@ -247,7 +247,6 @@ if __name__ == "__main__":
                                                 key=lambda s: int(s[4:]))]
     else:
         initial_weights = None
-
     train(learn_rate=0.001,
           report_steps=20,
           batch_size=50,
