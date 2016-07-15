@@ -242,7 +242,7 @@ def generate_im(char_ims, num_bg_images):
         min_scale=0.7,
         max_scale=0.9,
         rotation_variation=0.4,
-        scale_variation=0.2,
+        scale_variation=1.0,
         translation_variation=1.0)
     plate = cv2.warpAffine(plate, M, (bg.shape[1], bg.shape[0]))
     plate_mask = cv2.warpAffine(plate_mask, M, (bg.shape[1], bg.shape[0]))
@@ -280,7 +280,7 @@ if __name__ == "__main__":
     if not os.path.exists("test"):
         os.mkdir("test")
     # im_gen = generate_ims(int(sys.argv[1]))
-    im_gen = generate_ims(5000)
+    im_gen = generate_ims(10000)
     for img_idx, (im, c, p) in enumerate(im_gen):
         fname = "test/{:08d}_{}_{}.png".format(img_idx, c,
                                                "1" if p else "0")
