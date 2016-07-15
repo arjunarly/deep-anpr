@@ -45,7 +45,7 @@ from PIL import ImageFont
 
 import common
 
-FONT_PATH = "UKNumberPlate.ttf"
+fonts = ["fonts/Farrington-7B-Qiqi.ttf", "fonts/Arial.ttf", "fonts/times.ttf"]
 FONT_HEIGHT = 32  # Pixel size to which the chars are resized
 
 OUTPUT_SHAPE = (64, 128)
@@ -56,13 +56,13 @@ CHARS = common.CHARS + " "
 def make_char_ims(output_height):
     font_size = output_height * 4
 
-    font = ImageFont.truetype(FONT_PATH, font_size)
+    font = ImageFont.truetype(random.choice(fonts), font_size)
 
     height = max(font.getsize(c)[1] for c in CHARS)
 
     for c in CHARS:
         width = font.getsize(c)[0]
-        im = Image.new("RGBA", (width, height), (0, 0, 0))
+        im = Image.new("RGB", (width, height), (0, 0, 0))
 
         draw = ImageDraw.Draw(im)
         draw.text((0, 0), c, (255, 255, 255), font=font)
@@ -214,8 +214,8 @@ def generate_plate(font_height, char_ims):
 def generate_bg(num_bg_images):
     found = False
     while not found:
-        # fname = "bgs/{:08d}.jpg".format(random.randint(0, num_bg_images - 1))
-        fname = "bgs/12345678.jpg"
+        fname = "bgs/{:08d}.jpg".format(random.randint(0, num_bg_images - 1))
+        # fname = "bgs/12345678.jpg"
         bg = cv2.imread(fname, cv2.CV_LOAD_IMAGE_GRAYSCALE) / 255.
         if (bg.shape[1] >= OUTPUT_SHAPE[1] and
                     bg.shape[0] >= OUTPUT_SHAPE[0]):
