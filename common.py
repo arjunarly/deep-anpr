@@ -38,6 +38,8 @@ DIGITS = "0123456789"
 CHARS = DIGITS
 LENGTH = 16
 
+WINDOW_SHAPE = (64, 200)
+
 
 def softmax(a):
     exps = numpy.exp(a.astype(numpy.float64))
