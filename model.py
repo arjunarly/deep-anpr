@@ -34,7 +34,7 @@ import tensorflow as tf
 
 import common
 
-WINDOW_SHAPE = common.WINDOW_SHAPE
+WINDOW_SHAPE = (64, 128)
 
 
 # Utility functions
