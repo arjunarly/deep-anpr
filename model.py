@@ -136,14 +136,14 @@ def get_detect_model():
     x, conv_layer, conv_vars = convolutional_layers()
 
     # Fourth layer
-    W_fc1 = weight_variable([8 * 32 * 128, 2048])
-    W_conv1 = tf.reshape(W_fc1, [8, 32, 128, 2048])
-    b_fc1 = bias_variable([2048])
+    W_fc1 = weight_variable([8 * 32 * 128, 65536])
+    W_conv1 = tf.reshape(W_fc1, [8, 32, 128, 65536])
+    b_fc1 = bias_variable([65536])
     h_conv1 = tf.nn.relu(conv2d(conv_layer, W_conv1,
                                 stride=(1, 1), padding="VALID") + b_fc1)
     # Fifth layer
-    W_fc2 = weight_variable([2048, 1 + common.LENGTH * len(common.CHARS)])
-    W_conv2 = tf.reshape(W_fc2, [1, 1, 2048, 1 + common.LENGTH * len(common.CHARS)])
+    W_fc2 = weight_variable([65536, 1 + common.LENGTH * len(common.CHARS)])
+    W_conv2 = tf.reshape(W_fc2, [1, 1, 65536, 1 + common.LENGTH * len(common.CHARS)])
     b_fc2 = bias_variable([1 + common.LENGTH * len(common.CHARS)])
     h_conv2 = conv2d(h_conv1, W_conv2) + b_fc2
 
