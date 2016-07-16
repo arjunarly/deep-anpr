@@ -109,14 +109,14 @@ def get_training_model():
     x, conv_layer, conv_vars = convolutional_layers()
 
     # Densely connected layer
-    W_fc1 = weight_variable([32 * 8 * 128, 2048])
-    b_fc1 = bias_variable([2048])
+    W_fc1 = weight_variable([32 * 8 * 128, 65536])
+    b_fc1 = bias_variable([65536])
 
     conv_layer_flat = tf.reshape(conv_layer, [-1, 32 * 8 * 128])
     h_fc1 = tf.nn.relu(tf.matmul(conv_layer_flat, W_fc1) + b_fc1)
 
     # Output layer
-    W_fc2 = weight_variable([2048, 1 + common.LENGTH * len(common.CHARS)])
+    W_fc2 = weight_variable([65536, 1 + common.LENGTH * len(common.CHARS)])
     b_fc2 = bias_variable([1 + common.LENGTH * len(common.CHARS)])
 
     y = tf.matmul(h_fc1, W_fc2) + b_fc2

@@ -145,7 +145,7 @@ def train(learn_rate, report_steps, batch_size, initial_weights=None):
     """
     x, y, params = model.get_training_model()
 
-    y_ = tf.placeholder(tf.float32, [None, 7 * len(common.CHARS) + 1])
+    y_ = tf.placeholder(tf.float32, [None, common.LENGTH * len(common.CHARS) + 1])
 
     digits_loss = tf.nn.softmax_cross_entropy_with_logits(
         tf.reshape(y[:, 1:],
@@ -159,8 +159,8 @@ def train(learn_rate, report_steps, batch_size, initial_weights=None):
     cross_entropy = digits_loss + presence_loss
     train_step = tf.train.AdamOptimizer(learn_rate).minimize(cross_entropy)
 
-    best = tf.argmax(tf.reshape(y[:, 1:], [-1, 7, len(common.CHARS)]), 2)
-    correct = tf.argmax(tf.reshape(y_[:, 1:], [-1, 7, len(common.CHARS)]), 2)
+    best = tf.argmax(tf.reshape(y[:, 1:], [-1, common.LENGTH, len(common.CHARS)]), 2)
+    correct = tf.argmax(tf.reshape(y_[:, 1:], [-1, common.LENGTH, len(common.CHARS)]), 2)
 
     if initial_weights is not None:
         assert len(params) == len(initial_weights)
