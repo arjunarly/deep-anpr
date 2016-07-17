@@ -47,7 +47,6 @@ import gen
 import model
 
 
-
 def code_to_vec(p, code):
     def char_to_vec(c):
         y = numpy.zeros((len(common.CHARS),))
@@ -62,8 +61,9 @@ def code_to_vec(p, code):
 def read_data(img_glob):
     for fname in sorted(glob.glob(img_glob)):
         im = cv2.imread(fname)[:, :, 0].astype(numpy.float32) / 255.
-        code = fname.split("/")[1][9:9 + common.LENGTH]
-        p = fname.split("/")[1][9 + common.LENGTH + 1] == '1'
+
+        code = fname.split("/")[1].split("_")[1]
+        p = fname.split("/")[1].split("_")[2] == '1'
         yield im, code_to_vec(p, code)
 
 
@@ -210,8 +210,7 @@ def train(learn_rate, report_steps, batch_size, initial_weights=None):
             do_report()
 
     gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.95)
-    # with tf.Session(config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
-    with tf.Session(config=tf.ConfigProto( gpu_options=gpu_options)) as sess:
+    with tf.Session(config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
         sess.run(init)
         if initial_weights is not None:
             sess.run(assign_ops)
@@ -232,8 +231,6 @@ def train(learn_rate, report_steps, batch_size, initial_weights=None):
                             (last_batch_idx - batch_idx))
                         last_batch_idx = batch_idx
                         last_batch_time = batch_time
-                    last_weights = [p.eval() for p in params]
-                    numpy.savez("weights.npz", *last_weights)
 
         except KeyboardInterrupt:
             last_weights = [p.eval() for p in params]
@@ -248,6 +245,7 @@ if __name__ == "__main__":
                                                 key=lambda s: int(s[4:]))]
     else:
         initial_weights = None
+
     train(learn_rate=0.001,
           report_steps=20,
           batch_size=50,
