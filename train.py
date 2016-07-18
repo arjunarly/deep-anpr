@@ -235,6 +235,6 @@ if __name__ == "__main__":
     else:
         initial_weights = None
 
-    train(report_steps=60,
+    train(report_steps=500,
           batch_size=64,
           initial_weights=initial_weights)
