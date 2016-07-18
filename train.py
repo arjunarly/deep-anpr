@@ -218,12 +218,15 @@ def train(learn_rate, report_steps, batch_size, initial_weights=None):
             sess.run(assign_ops)
 
         test_xs, test_ys = unzip(list(read_data("test/*.png"))[:50])
-
         try:
             last_batch_idx = 0
             last_batch_time = time.time()
             batch_iter = enumerate(read_batches(batch_size))
             for batch_idx, (batch_xs, batch_ys) in batch_iter:
+                if (batch_idx > 100000):
+                    last_weights = [p.eval() for p in params]
+                    numpy.savez("weights.npz", *last_weights)
+                    return last_weights
                 do_batch()
                 if batch_idx % report_steps == 0:
                     batch_time = time.time()
@@ -233,8 +236,8 @@ def train(learn_rate, report_steps, batch_size, initial_weights=None):
                             (last_batch_idx - batch_idx))
                         last_batch_idx = batch_idx
                         last_batch_time = batch_time
-                        last_weights = [p.eval() for p in params]
-                        numpy.savez("weights.npz", *last_weights)
+                        # last_weights = [p.eval() for p in params]
+                        # numpy.savez("weights.npz", *last_weights)
 
         except KeyboardInterrupt:
             last_weights = [p.eval() for p in params]
@@ -253,4 +256,4 @@ if __name__ == "__main__":
     train(learn_rate=0.001,
           report_steps=20,
           batch_size=50,
-          initial_weights=initial_weights)
+          initial_weights=initial_weights, epoches=1)
