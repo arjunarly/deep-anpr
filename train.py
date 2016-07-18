@@ -187,6 +187,8 @@ def train(report_steps, batch_size, initial_weights=None):
                                                                                              100. * num_correct / (
                                                                                                  len(r[0])),
                                                                                              r[2], r[3])
+        last_weights = [p.eval() for p in params]
+        numpy.savez("weights.npz", *last_weights)
 
     def do_batch():
         sess.run(train_step,
