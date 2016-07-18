@@ -152,8 +152,8 @@ def train(learn_rate, report_steps, batch_size, initial_weights=None):
                                                           tf.reshape(y_, [-1, len(common.CHARS)]))
     cross_entropy = tf.reduce_sum(digits_loss)
 
-    # train_step = tf.train.AdamOptimizer(learn_rate).minimize(cross_entropy)
-    train_step = tf.train.GradientDescentOptimizer(learn_rate).minimize(cross_entropy)
+    train_step = tf.train.AdamOptimizer(learn_rate).minimize(cross_entropy)
+    #ain_step = tf.train.GradientDescentOptimizer(learn_rate).minimize(cross_entropy)
 
     predict = tf.argmax(tf.reshape(y, [-1, common.LENGTH, len(common.CHARS)]), 2)
 
@@ -198,7 +198,7 @@ def train(learn_rate, report_steps, batch_size, initial_weights=None):
             sess.run(assign_ops)
 
         test_xs, test_ys = unzip(list(read_data("test/*.png"))[:common.TEST_SIZE])
-        print "test_xs.shape:{}".format(test_xs.shape)
+        #print "test_xs.shape:{}".format(test_xs.shape)
 
         try:
             last_batch_idx = 0
