@@ -25,20 +25,16 @@ Definitions that don't fit elsewhere.
 
 __all__ = (
     'DIGITS',
-    'CHARS',
     'sigmoid',
     'softmax',
 )
-
 
 import numpy
 
 DIGITS = "0123456789"
 # LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-# LETTERS = ""
 CHARS = DIGITS
 LENGTH = 7
-OUTPUT_LAYER_NODES = 4096
 
 
 def softmax(a):

@@ -47,26 +47,23 @@ import gen
 import model
 
 
-def code_to_vec(p, code):
+def code_to_vec(code):
     def char_to_vec(c):
         y = numpy.zeros((len(common.CHARS),))
         y[common.CHARS.index(c)] = 1.0
         return y
 
     c = numpy.vstack([char_to_vec(c) for c in code])
-
-    return numpy.concatenate([[1. if p else 0], c.flatten()])
+    result = numpy.concatenate([c.flatten(), []])
+    #print c.shape, result.shape
+    return result
 
 
 def read_data(img_glob):
     for fname in sorted(glob.glob(img_glob)):
         im = cv2.imread(fname)[:, :, 0].astype(numpy.float32) / 255.
-
         code = fname.split("/")[1].split("_")[1]
-        # print fname.split("/")[1].split("_")[2].replace(".png", "")
-        p = fname.split("/")[1].split("_")[2].replace(".png", "") == '1'
-
-        yield im, code_to_vec(p, code)
+        yield im, code_to_vec(code)
 
 
 def unzip(b):
@@ -116,7 +113,7 @@ def mpgen(f):
 def read_batches(batch_size):
     def gen_vecs():
         for im, c, p in gen.generate_ims(batch_size):
-            yield im, code_to_vec(p, c)
+            yield im, code_to_vec(c)
 
     while True:
         yield unzip(gen_vecs())
@@ -148,7 +145,7 @@ def train(learn_rate, report_steps, batch_size, initial_weights=None):
     """
     x, y, params = model.get_training_model()
 
-    y_ = tf.placeholder(tf.float32, [None, common.LENGTH * len(common.CHARS) + 1])
+    y_ = tf.placeholder(tf.float32, [None, common.LENGTH * len(common.CHARS)])
 
     digits_loss = tf.nn.softmax_cross_entropy_with_logits(
         tf.reshape(y[:, 1:],
@@ -156,14 +153,14 @@ def train(learn_rate, report_steps, batch_size, initial_weights=None):
         tf.reshape(y_[:, 1:],
                    [-1, len(common.CHARS)]))
     digits_loss = tf.reduce_sum(digits_loss)
-    presence_loss = 10. * tf.nn.sigmoid_cross_entropy_with_logits(
-        y[:, :1], y_[:, :1])
-    presence_loss = tf.reduce_sum(presence_loss)
-    cross_entropy = digits_loss + presence_loss
+    presence_loss = tf.zeros(shape=(1, 0))
+    #presence_loss = 10. * tf.nn.sigmoid_cross_entropy_with_logits(
+    #    y[:, :1], y_[:, :1])
+    #presence_loss = tf.reduce_sum(presence_loss)
+    cross_entropy = digits_loss
     train_step = tf.train.AdamOptimizer(learn_rate).minimize(cross_entropy)
-
-    best = tf.argmax(tf.reshape(y[:, 1:], [-1, common.LENGTH, len(common.CHARS)]), 2)
-    correct = tf.argmax(tf.reshape(y_[:, 1:], [-1, common.LENGTH, len(common.CHARS)]), 2)
+    best = tf.argmax(tf.reshape(y[:, :], [-1, common.LENGTH, len(common.CHARS)]), 2)
+    correct = tf.argmax(tf.reshape(y_[:, :], [-1, common.LENGTH, len(common.CHARS)]), 2)
 
     if initial_weights is not None:
         assert len(params) == len(initial_weights)
@@ -184,10 +181,7 @@ def train(learn_rate, report_steps, batch_size, initial_weights=None):
                       cross_entropy],
                      feed_dict={x: test_xs, y_: test_ys})
         num_correct = numpy.sum(
-            numpy.logical_or(
-                numpy.all(r[0] == r[1], axis=1),
-                numpy.logical_and(r[2] < 0.5,
-                                  r[3] < 0.5)))
+            numpy.logical_or(numpy.all(r[0] == r[1], axis=1), numpy.logical_and(r[2] < 0.5, r[3] < 0.5)))
         r_short = (r[0][:190], r[1][:190], r[2][:190], r[3][:190])
         for b, c, pb, pc in zip(*r_short):
             print "{} {} <-> {} {}".format(vec_to_plate(c), pc,
@@ -217,7 +211,8 @@ def train(learn_rate, report_steps, batch_size, initial_weights=None):
         if initial_weights is not None:
             sess.run(assign_ops)
 
-        test_xs, test_ys = unzip(list(read_data("test/*.png"))[:100])
+        test_xs, test_ys = unzip(list(read_data("test/*.png"))[:50])
+
         try:
             last_batch_idx = 0
             last_batch_time = time.time()
@@ -232,8 +227,6 @@ def train(learn_rate, report_steps, batch_size, initial_weights=None):
                             (last_batch_idx - batch_idx))
                         last_batch_idx = batch_idx
                         last_batch_time = batch_time
-                        # last_weights = [p.eval() for p in params]
-                        # numpy.savez("weights.npz", *last_weights)
 
         except KeyboardInterrupt:
             last_weights = [p.eval() for p in params]

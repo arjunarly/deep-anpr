@@ -45,33 +45,30 @@ from PIL import ImageFont
 
 import common
 
-fonts = ["fonts/Farrington-7B-Qiqi.ttf", "fonts/Arial.ttf", "fonts/times.ttf"]
-FONT_HEIGHT = 16  # Pixel size to which the chars are resized
+FONT_PATH = "fonts/times.ttf"
+FONT_HEIGHT = 32  # Pixel size to which the chars are resized
 
 OUTPUT_SHAPE = (64, 128)
 
 CHARS = common.CHARS + " "
 
 
-def make_char_ims(output_height, font):
+def make_char_ims(output_height):
     font_size = output_height * 4
-    font = ImageFont.truetype(font, font_size)
-    height = max(font.getsize(d)[1] for d in CHARS)
+
+    font = ImageFont.truetype(FONT_PATH, font_size)
+
+    height = max(font.getsize(c)[1] for c in CHARS)
+
     for c in CHARS:
         width = font.getsize(c)[0]
         im = Image.new("RGBA", (width, height), (0, 0, 0))
+
         draw = ImageDraw.Draw(im)
         draw.text((0, 0), c, (255, 255, 255), font=font)
         scale = float(output_height) / height
         im = im.resize((int(width * scale), output_height), Image.ANTIALIAS)
         yield c, numpy.array(im)[:, :, 0].astype(numpy.float32) / 255.
-
-
-def get_all_font_char_ims(out_height):
-    result = []
-    for font in fonts:
-        result.append(dict(make_char_ims(out_height, font)))
-    return result
 
 
 def euler_to_mat(yaw, pitch, roll):
@@ -160,7 +157,6 @@ def make_affine_transform(from_shape, to_shape,
 def generate_code():
     f = ""
     append_blank = random.choice([True, False])
-
     for i in range(common.LENGTH):
         if 0 == i % 4 and append_blank:
             f = f + ' '
@@ -188,6 +184,7 @@ def generate_plate(font_height, char_ims):
     v_padding = random.uniform(0.1, 0.3) * font_height
     spacing = font_height * random.uniform(-0.05, 0.05)
     radius = 1 + int(font_height * 0.1 * random.random())
+
     code = generate_code()
     text_width = sum(char_ims[c].shape[1] for c in code)
     text_width += (len(code) - 1) * spacing
@@ -210,7 +207,6 @@ def generate_plate(font_height, char_ims):
     plate = (numpy.ones(out_shape) * plate_color * (1. - text_mask) +
              numpy.ones(out_shape) * text_color * text_mask)
 
-    # plate =  (numpy.ones(out_shape) - text_mask)
     return plate, rounded_rect(out_shape, radius), code.replace(" ", "")
 
 
@@ -218,7 +214,6 @@ def generate_bg(num_bg_images):
     found = False
     while not found:
         fname = "bgs/{:08d}.jpg".format(random.randint(0, num_bg_images - 1))
-        # fname = "bgs/12345678.jpg"
         bg = cv2.imread(fname, cv2.CV_LOAD_IMAGE_GRAYSCALE) / 255.
         if (bg.shape[1] >= OUTPUT_SHAPE[1] and
                     bg.shape[0] >= OUTPUT_SHAPE[0]):
@@ -247,17 +242,12 @@ def generate_im(char_ims, num_bg_images):
     plate = cv2.warpAffine(plate, M, (bg.shape[1], bg.shape[0]))
     plate_mask = cv2.warpAffine(plate_mask, M, (bg.shape[1], bg.shape[0]))
 
-    # out = plate * plate_mask + bg * (1.0 - plate_mask)
-    # out = plate * plate_mask + bg * (1.0 - plate_mask)
-    out = plate * plate_mask + bg * (1 - plate_mask)
+    out = plate * plate_mask + bg * (1.0 - plate_mask)
+
     out = cv2.resize(out, (OUTPUT_SHAPE[1], OUTPUT_SHAPE[0]))
 
     out += numpy.random.normal(scale=0.05, size=out.shape)
     out = numpy.clip(out, 0., 1.)
-    import uuid
-
-    fname = 'uuid/' + str(uuid.uuid4()) + ".png"
-    cv2.imwrite(fname, out * 255.)
 
     return out, code, not out_of_bounds
 
@@ -274,16 +264,15 @@ def generate_ims(num_images):
 
     """
     variation = 1.0
-    char_ims = get_all_font_char_ims(FONT_HEIGHT)
+    char_ims = dict(make_char_ims(FONT_HEIGHT))
     num_bg_images = len(os.listdir("bgs"))
     for i in range(num_images):
-        yield generate_im(random.choice(char_ims), num_bg_images)
+        yield generate_im(char_ims, num_bg_images)
 
 
 if __name__ == "__main__":
     if not os.path.exists("test"):
         os.mkdir("test")
-    # im_gen = generate_ims(int(sys.argv[1]))
     im_gen = generate_ims(1000)
     for img_idx, (im, c, p) in enumerate(im_gen):
         fname = "test/{:08d}_{}_{}.png".format(img_idx, c,
