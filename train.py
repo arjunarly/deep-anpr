@@ -217,7 +217,7 @@ def train(learn_rate, report_steps, batch_size, initial_weights=None):
         if initial_weights is not None:
             sess.run(assign_ops)
 
-        test_xs, test_ys = unzip(list(read_data("test/*.png"))[:50])
+        test_xs, test_ys = unzip(list(read_data("test/*.png"))[:100])
         try:
             last_batch_idx = 0
             last_batch_time = time.time()
