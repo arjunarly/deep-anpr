@@ -54,15 +54,15 @@ def code_to_vec(code):
         return y
 
     c = numpy.vstack([char_to_vec(c) for c in code])
-    result = numpy.concatenate([c.flatten(), []])
-    #print c.shape, result.shape
-    return result
+    #print "c.shape():{}".format(c.shape)
+    return numpy.concatenate([c.flatten()])
 
 
 def read_data(img_glob):
     for fname in sorted(glob.glob(img_glob)):
         im = cv2.imread(fname)[:, :, 0].astype(numpy.float32) / 255.
-        code = fname.split("/")[1].split("_")[1]
+        code = fname.split("/")[1][9:9 + common.LENGTH]
+        p = fname.split("/")[1][9 + common.LENGTH + 1] == '1'
         yield im, code_to_vec(code)
 
 
@@ -94,7 +94,7 @@ def mpgen(f):
 
     @functools.wraps(f)
     def wrapped(*args, **kwargs):
-        q = multiprocessing.Queue(3)
+        q = multiprocessing.Queue(10)
         proc = multiprocessing.Process(target=main,
                                        args=(q, args, kwargs))
         proc.start()
@@ -143,24 +143,21 @@ def train(learn_rate, report_steps, batch_size, initial_weights=None):
         The learned network weights.
 
     """
+    # y is the predicted value
     x, y, params = model.get_training_model()
 
     y_ = tf.placeholder(tf.float32, [None, common.LENGTH * len(common.CHARS)])
 
-    digits_loss = tf.nn.softmax_cross_entropy_with_logits(
-        tf.reshape(y[:, 1:],
-                   [-1, len(common.CHARS)]),
-        tf.reshape(y_[:, 1:],
-                   [-1, len(common.CHARS)]))
-    digits_loss = tf.reduce_sum(digits_loss)
-    presence_loss = tf.zeros(shape=(1, 0))
-    #presence_loss = 10. * tf.nn.sigmoid_cross_entropy_with_logits(
-    #    y[:, :1], y_[:, :1])
-    #presence_loss = tf.reduce_sum(presence_loss)
-    cross_entropy = digits_loss
-    train_step = tf.train.AdamOptimizer(learn_rate).minimize(cross_entropy)
-    best = tf.argmax(tf.reshape(y[:, :], [-1, common.LENGTH, len(common.CHARS)]), 2)
-    correct = tf.argmax(tf.reshape(y_[:, :], [-1, common.LENGTH, len(common.CHARS)]), 2)
+    digits_loss = tf.nn.softmax_cross_entropy_with_logits(tf.reshape(y, [-1, len(common.CHARS)]),
+                                                          tf.reshape(y_, [-1, len(common.CHARS)]))
+    cross_entropy = tf.reduce_sum(digits_loss)
+
+    # train_step = tf.train.AdamOptimizer(learn_rate).minimize(cross_entropy)
+    train_step = tf.train.GradientDescentOptimizer(learn_rate).minimize(cross_entropy)
+
+    predict = tf.argmax(tf.reshape(y, [-1, common.LENGTH, len(common.CHARS)]), 2)
+
+    real_value = tf.argmax(tf.reshape(y_, [-1, common.LENGTH, len(common.CHARS)]), 2)
 
     if initial_weights is not None:
         assert len(params) == len(initial_weights)
@@ -172,32 +169,20 @@ def train(learn_rate, report_steps, batch_size, initial_weights=None):
         return "".join(common.CHARS[i] for i in v)
 
     def do_report():
-        r = sess.run([best,
-                      correct,
-                      tf.greater(y[:, 0], 0),
-                      y_[:, 0],
-                      digits_loss,
-                      presence_loss,
-                      cross_entropy],
-                     feed_dict={x: test_xs, y_: test_ys})
-        num_correct = numpy.sum(
-            numpy.logical_or(numpy.all(r[0] == r[1], axis=1), numpy.logical_and(r[2] < 0.5, r[3] < 0.5)))
-        r_short = (r[0][:190], r[1][:190], r[2][:190], r[3][:190])
-        for b, c, pb, pc in zip(*r_short):
-            print "{} {} <-> {} {}".format(vec_to_plate(c), pc,
-                                           vec_to_plate(b), float(pb))
-        num_p_correct = numpy.sum(r[2] == r[3])
+        r = sess.run([predict, real_value, cross_entropy], feed_dict={x: test_xs, y_: test_ys})
+        num_correct = numpy.sum(numpy.all(r[0] == r[1], axis=1))
+        r_short = (r[0][:common.TEST_SIZE], r[1][:common.TEST_SIZE])
+        print "{} <--> {} ".format("real_value", "predict_value")
+        for pred, real in zip(*r_short):
+            print "{} <--> {} ".format(vec_to_plate(real), vec_to_plate(pred))
+        # r_short = (r[0][:190], r[1][:190], r[2][:190], r[3][:190])
+        # for b, c, pb, pc in zip(*r_short):
+        #    print "{} {} <-> {} {}".format(vec_to_plate(c), pc,
+        #                                   vec_to_plate(b), float(pb))
+        # num_p_correct = numpy.sum(r[2] == r[3])
 
-        print ("B{:3d} {:2.02f}% {:02.02f}% loss: {} "
-               "(digits: {}, presence: {}) |{}|").format(
-            batch_idx,
-            100. * num_correct / (len(r[0])),
-            100. * num_p_correct / len(r[2]),
-            r[6],
-            r[4],
-            r[5],
-            "".join("X "[numpy.array_equal(b, c) or (not pb and not pc)]
-                    for b, c, pb, pc in zip(*r_short)))
+        print ("Batch:{:3d} hit_rate:{:2.02f}% cross_entropy: {}").format(batch_idx, 100. * num_correct / (len(r[0])),
+                                                                          r[2])
 
     def do_batch():
         sess.run(train_step,
@@ -205,24 +190,27 @@ def train(learn_rate, report_steps, batch_size, initial_weights=None):
         if batch_idx % report_steps == 0:
             do_report()
 
-    gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.95)
+    gpu_options = tf.GPUOptions(
+        per_process_gpu_memory_fraction=0.95)
     with tf.Session(config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
         sess.run(init)
         if initial_weights is not None:
             sess.run(assign_ops)
 
-        test_xs, test_ys = unzip(list(read_data("test/*.png"))[:50])
+        test_xs, test_ys = unzip(list(read_data("test/*.png"))[:common.TEST_SIZE])
+        print "test_xs.shape:{}".format(test_xs.shape)
 
         try:
             last_batch_idx = 0
             last_batch_time = time.time()
             batch_iter = enumerate(read_batches(batch_size))
             for batch_idx, (batch_xs, batch_ys) in batch_iter:
+                #print "batch_ys.shape():{}".format(batch_ys.shape)
                 do_batch()
                 if batch_idx % report_steps == 0:
                     batch_time = time.time()
                     if last_batch_idx != batch_idx:
-                        print "time for 60 batches {}".format(
+                        print "time for 60 batches {}s".format(
                             60 * (last_batch_time - batch_time) /
                             (last_batch_idx - batch_idx))
                         last_batch_idx = batch_idx
@@ -242,7 +230,7 @@ if __name__ == "__main__":
     else:
         initial_weights = None
 
-    train(learn_rate=0.001,
-          report_steps=20,
-          batch_size=50,
+    train(learn_rate=0.0001,
+          report_steps=60,
+          batch_size=64,
           initial_weights=initial_weights)
