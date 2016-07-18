@@ -230,7 +230,7 @@ if __name__ == "__main__":
     else:
         initial_weights = None
 
-    train(learn_rate=0.0001,
+    train(learn_rate=0.001,
           report_steps=60,
           batch_size=64,
           initial_weights=initial_weights)
