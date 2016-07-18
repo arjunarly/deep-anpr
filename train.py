@@ -123,6 +123,7 @@ def read_batches(batch_size):
 
 
 def train(learn_rate, report_steps, batch_size, initial_weights=None):
+
     """
     Train the network.
 
