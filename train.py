@@ -161,10 +161,6 @@ def train(report_steps, batch_size, initial_weights=None):
     cross_entropy = tf.reduce_sum(digits_loss)
 
     train_step = tf.train.AdamOptimizer(learning_rate).minimize(cross_entropy)
-    # optimizer = tf.train.MomentumOptimizer(learningRate, momentum).minimize(loss)
-    # train_step = tf.train.MomentumOptimizer(learningRate, momentum).minimize(loss)
-
-    # ain_step = tf.train.GradientDescentOptimizer(learn_rate).minimize(cross_entropy)
 
     predict = tf.argmax(tf.reshape(y, [-1, common.LENGTH, len(common.CHARS)]), 2)
 
@@ -187,10 +183,10 @@ def train(report_steps, batch_size, initial_weights=None):
         for pred, real in zip(*r_short):
             print "{} <--> {} ".format(vec_to_plate(real), vec_to_plate(pred))
 
-        print ("Batch:{:3d} hit_rate:{:2.02f}% cross_entropy:{}, learning_rate:{} ").format(batch_idx,
-                                                                                            100. * num_correct / (
-                                                                                                len(r[0])),
-                                                                                            r[2], r[3])
+        print ("batch:{:3d}, hit_rate:{:2.02f}%,cross_entropy:{}, learning_rate:{} ").format(batch_idx,
+                                                                                             100. * num_correct / (
+                                                                                                 len(r[0])),
+                                                                                             r[2], r[3])
 
     def do_batch():
         sess.run(train_step,

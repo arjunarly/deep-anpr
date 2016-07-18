@@ -37,7 +37,7 @@ CHARS = DIGITS
 LENGTH = 16
 TEST_SIZE = 1000
 
-LEARNING_RATE_DECAY_FACTOR = 0.9  # The learning rate decay factor
+LEARNING_RATE_DECAY_FACTOR = 0.8  # The learning rate decay factor
 INITIAL_LEARNING_RATE = 0.001
 DECAY_STEPS = 1000
 
