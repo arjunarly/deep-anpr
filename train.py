@@ -256,4 +256,4 @@ if __name__ == "__main__":
     train(learn_rate=0.001,
           report_steps=20,
           batch_size=50,
-          initial_weights=initial_weights, epoches=1)
+          initial_weights=initial_weights)
