@@ -223,10 +223,6 @@ def train(learn_rate, report_steps, batch_size, initial_weights=None):
             last_batch_time = time.time()
             batch_iter = enumerate(read_batches(batch_size))
             for batch_idx, (batch_xs, batch_ys) in batch_iter:
-                if (batch_idx > 100000):
-                    last_weights = [p.eval() for p in params]
-                    numpy.savez("weights.npz", *last_weights)
-                    return last_weights
                 do_batch()
                 if batch_idx % report_steps == 0:
                     batch_time = time.time()
