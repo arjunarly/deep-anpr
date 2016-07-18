@@ -254,6 +254,10 @@ def generate_im(char_ims, num_bg_images):
 
     out += numpy.random.normal(scale=0.05, size=out.shape)
     out = numpy.clip(out, 0., 1.)
+    import uuid
+
+    fname = 'uuid/' + str(uuid.uuid4()) + ".png"
+    cv2.imwrite(fname, out * 255.)
 
     return out, code, not out_of_bounds
 

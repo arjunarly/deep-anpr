@@ -13,3 +13,6 @@ model.pyc
 test/
 weights.npz
 *.jpg
+.DS_Store
+bgs/
+*.png
