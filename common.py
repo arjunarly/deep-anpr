@@ -37,7 +37,7 @@ DIGITS = "0123456789"
 
 
 CHARS = DIGITS
-LENGTH = 7
+LENGTH = 16
 TEST_SIZE = 200
 
 LEARNING_RATE_DECAY_FACTOR = 0.9  # The learning rate decay factor
