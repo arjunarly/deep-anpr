@@ -143,7 +143,7 @@ def get_detect_model():
                                 stride=(1, 1), padding="VALID") + b_fc1)
     # Fifth layer
     W_fc2 = weight_variable([common.LAST_HIDEN_LAYER_NODES, common.LENGTH * len(common.CHARS)])
-    W_conv2 = tf.reshape(W_fc2, [1, 1, 2048, common.LENGTH * len(common.CHARS)])
+    W_conv2 = tf.reshape(W_fc2, [1, 1, common.LAST_HIDEN_LAYER_NODES, common.LENGTH * len(common.CHARS)])
     b_fc2 = bias_variable([common.LENGTH * len(common.CHARS)])
     h_conv2 = conv2d(h_conv1, W_conv2) + b_fc2
 
