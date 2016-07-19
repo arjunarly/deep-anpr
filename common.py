@@ -42,6 +42,8 @@ LEARNING_RATE_DECAY_FACTOR = 0.9  # The learning rate decay factor
 INITIAL_LEARNING_RATE = 0.0001
 DECAY_STEPS = 5000
 
+LAST_HIDEN_LAYER_NODES = 8192
+
 
 def softmax(a):
     exps = numpy.exp(a.astype(numpy.float64))

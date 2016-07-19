@@ -127,7 +127,7 @@ def train(report_steps, batch_size, initial_weights=None):
 
     The function operates interactively: Progress is reported on stdout, and
     training ceases upon `KeyboardInterrupt` at which point the learned weights
-    are saved to `weights.npz`, and also returned.
+    are saved to `weights_7_2048.npz`, and also returned.
 
     :param learn_rate:
         Learning rate to use.
@@ -193,7 +193,7 @@ def train(report_steps, batch_size, initial_weights=None):
                                                                                                             r[4])
 
         last_weights = [p.eval() for p in params]
-        numpy.savez("weights.npz", *last_weights)
+        numpy.savez("weights_7_2048.npz", *last_weights)
 
     def do_batch():
         sess.run(train_step,
@@ -230,7 +230,7 @@ def train(report_steps, batch_size, initial_weights=None):
         except KeyboardInterrupt:
 
             last_weights = [p.eval() for p in params]
-            numpy.savez("weights.npz", *last_weights)
+            numpy.savez("weights_7_2048.npz", *last_weights)
             return last_weights
 
 

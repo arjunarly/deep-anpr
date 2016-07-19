@@ -51,7 +51,7 @@ if __name__ == "__main__":
     im = cv2.imread("00000094_4516649_1.png")
     im_gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY) / 255.
 
-    f = numpy.load('weights.npz')
+    f = numpy.load('weights_7_2048.npz')
     param_vals = [f[n] for n in sorted(f.files, key=lambda s: int(s[4:]))]
 
     code = detect(im_gray, param_vals)
