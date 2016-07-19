@@ -146,6 +146,7 @@ def train(report_steps, batch_size, initial_weights=None):
 
     """
     global_step = tf.Variable(0, trainable=False)
+    batch_idx = tf.placeholder(tf.int32)
     learning_rate = tf.train.exponential_decay(common.INITIAL_LEARNING_RATE,
                                                global_step,
                                                common.DECAY_STEPS,
@@ -160,7 +161,7 @@ def train(report_steps, batch_size, initial_weights=None):
                                                           tf.reshape(y_, [-1, len(common.CHARS)]))
     cross_entropy = tf.reduce_sum(digits_loss)
 
-    train_step = tf.train.AdamOptimizer(learning_rate).minimize(cross_entropy)
+    train_step = tf.train.AdamOptimizer(learning_rate).minimize(cross_entropy, global_step=global_step)
 
     predict = tf.argmax(tf.reshape(y, [-1, common.LENGTH, len(common.CHARS)]), 2)
 
@@ -176,17 +177,20 @@ def train(report_steps, batch_size, initial_weights=None):
         return "".join(common.CHARS[i] for i in v)
 
     def do_report():
-        r = sess.run([predict, real_value, cross_entropy, learning_rate], feed_dict={x: test_xs, y_: test_ys})
+        r = sess.run([predict, real_value, cross_entropy, learning_rate, global_step],
+                     feed_dict={x: test_xs, y_: test_ys})
         num_correct = numpy.sum(numpy.all(r[0] == r[1], axis=1))
         r_short = (r[0][:common.TEST_SIZE], r[1][:common.TEST_SIZE])
         print "{} <--> {} ".format("real_value", "predict_value")
         for pred, real in zip(*r_short):
             print "{} <--> {} ".format(vec_to_plate(real), vec_to_plate(pred))
 
-        print ("batch:{:3d}, hit_rate:{:2.02f}%,cross_entropy:{}, learning_rate:{} ").format(batch_idx,
-                                                                                             100. * num_correct / (
-                                                                                                 len(r[0])),
-                                                                                             r[2], r[3])
+        print ("batch:{:3d}, hit_rate:{:2.02f}%,cross_entropy:{}, learning_rate:{},global_step:{} ").format(batch_idx,
+                                                                                                            100. * num_correct / (
+                                                                                                                len(r[
+                                                                                                                        0])),
+                                                                                                            r[2], r[3],
+                                                                                                            r[4])
 
         last_weights = [p.eval() for p in params]
         numpy.savez("weights.npz", *last_weights)
