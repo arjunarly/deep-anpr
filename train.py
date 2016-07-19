@@ -245,3 +245,4 @@ if __name__ == "__main__":
     train(report_steps=500,
           batch_size=64,
           initial_weights=initial_weights)
+
