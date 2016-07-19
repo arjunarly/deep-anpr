@@ -29,6 +29,7 @@ __all__ = (
     'softmax',
 )
 
+
 import numpy
 
 DIGITS = "0123456789"
