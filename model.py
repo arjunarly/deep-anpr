@@ -39,7 +39,7 @@ WINDOW_SHAPE = (64, 128)
 
 # Utility functions
 def weight_variable(shape):
-    initial = tf.truncated_normal(shape, stddev=0.1)
+    initial = tf.truncated_normal(shape, stddev=0.5)
     return tf.Variable(initial)
 
 
