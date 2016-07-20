@@ -57,7 +57,7 @@ with graph.as_default():
     # NOTE: try variable-steps inputs and dynamic bidirectional rnn, when it's implemented in tensorflow
 
     # Graph input
-    inputX = tf.placeholder(tf.float32, shape=(maxSteps, None, nFeatures))
+    inputX = tf.placeholder(tf.float32, shape=(maxSteps, common.BATCH_SIZE, nFeatures))
     # Prep input data to fit requirements of rnn.bidirectional_rnn
     # Reshape to 2-D tensor (nTimeSteps*batchSize, nfeatures)
     inputXrs = tf.reshape(inputX, [-1, nFeatures])
@@ -67,7 +67,7 @@ with graph.as_default():
     targetVals = tf.placeholder(tf.int32)
     targetShape = tf.placeholder(tf.int64)
     targetY = tf.SparseTensor(targetIxs, targetVals, targetShape)
-    seqLengths = tf.placeholder(tf.int32, shape=(None))
+    seqLengths = tf.placeholder(tf.int32, shape=(common.BATCH_SIZE))
 
     # Weights & biases
     weightsOutH1 = tf.Variable(tf.truncated_normal([2, nHidden],
