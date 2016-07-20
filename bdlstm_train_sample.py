@@ -36,7 +36,7 @@ nEpochs = 300
 nHidden = 128
 nClasses = 11  # 11 characters[0,9], plus the "blank" for CTC
 
-report_steps = 100
+report_steps = 50
 
 # Load data
 print('Loading data')
@@ -137,8 +137,7 @@ with tf.Session(graph=graph) as session:
             feedDict = {inputX: batchInputs, targetIxs: batchTargetIxs, targetVals: batchTargetVals,
                         targetShape: batchTargetShape, seqLengths: batchSeqLengths}
             _, l, er, lmt = session.run([optimizer, loss, errorRate, logitsMaxTest], feed_dict=feedDict)
-            # print(np.unique(
-            #    lmt))  # print unique argmax values of first sample in batch; should be blank for a while, then spit out target values
+            #print(np.unique(lmt))  # print unique argmax values of first sample in batch; should be blank for a while, then spit out target values
             if batch_idx % report_steps == 0:
                 do_report()
                 batch_time = time.time()
