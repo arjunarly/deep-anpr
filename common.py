@@ -44,7 +44,6 @@ DECAY_STEPS = 5000
 
 LAST_HIDEN_LAYER_NODES = 2048
 
-
 def softmax(a):
     exps = numpy.exp(a.astype(numpy.float64))
     return exps / numpy.sum(exps, axis=-1)[:, numpy.newaxis]
