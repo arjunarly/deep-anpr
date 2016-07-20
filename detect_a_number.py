@@ -49,7 +49,7 @@ def detect(im, param_vals):
 
 
 if __name__ == "__main__":
-    im = cv2.imread("00000004_4265936_1.png")
+    im = cv2.imread("00000099_1341836_1.png")
     im_gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY) / 255.
 
     f = numpy.load('weights_7_2048.npz')
