@@ -47,6 +47,7 @@ def detect(im, param_vals):
     return code
 
 
+
 if __name__ == "__main__":
     im = cv2.imread("00000004_4265936_1.png")
     im_gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY) / 255.
