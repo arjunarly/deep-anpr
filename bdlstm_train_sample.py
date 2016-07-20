@@ -114,25 +114,12 @@ with tf.Session(graph=graph) as session:
 
 
     def do_report():
-        feedDict = {inputX: test_batchInputs, targetIxs: test_batchTargetIxs, targetVals: test_batchTargetVals,
-                    targetShape: test_batchTargetShape, seqLengths: test_batchSeqLengths}
-        l, pred, errR, steps, lr_rate = session.run([loss, predictions, errorRate, global_step, learning_rate],
-                                                    feed_dict=feedDict)
-        print("loss:", l, "step:", steps, "lr_rate:", lr_rate, "pred:", pred, "errorRate:", errR)
-
-        # num_correct = numpy.sum(numpy.all(r[0] == r[1], axis=1))
-        # r_short = (r[0][:common.TEST_SIZE], r[1][:common.TEST_SIZE])
-        # print "{} <--> {} ".format("real_value", "predict_value")
-
-        # for pred, real in zip(*r_short):
-        #    print "{} <--> {} ".format(vec_to_plate(real), vec_to_plate(pred))
-
-        #          print ("batch:{:3d}, hit_rate:{:2.02f}%,cross_entropy:{}, learning_rate:{},global_step:{} ").format(batch_idx,
-        #                                                                                                             100. * num_correct / (
-        #                                                                                                                 len(r[
-        #                                                                                                                         0])),
-        #                                                                                                              r[2], r[3],
-        #                                                                                                              r[4])
+        fDict = {inputX: test_batchInputs, targetIxs: test_batchTargetIxs, targetVals: test_batchTargetVals,
+                 targetShape: test_batchTargetShape, seqLengths: test_batchSeqLengths}
+        l, pred, errR, steps, lr_rate, lmt = session.run(
+            [loss, predictions, errorRate, global_step, learning_rate, logitsMaxTest],
+            feed_dict=fDict)
+        print("step:", steps, "loss:", l, "lr_rate:", lr_rate, "lmt:", np.unique(lmt))
 
 
     for epoch in range(nEpochs):
