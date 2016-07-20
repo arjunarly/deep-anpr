@@ -37,7 +37,7 @@ DIGITS = "0123456789"
 
 CHARS = DIGITS
 LENGTH = 16
-TEST_SIZE = 200
+TEST_SIZE = 10
 
 LEARNING_RATE_DECAY_FACTOR = 0.9  # The learning rate decay factor
 INITIAL_LEARNING_RATE = 0.0001
@@ -46,7 +46,7 @@ DECAY_STEPS = 2000
 # parameters for bdlstm ctc
 MAX_LENGTH = 20 # max length of the sequence
 MIN_LENGTH = 16 # min length of the sequence
-BATCH_SIZE = 64
+BATCH_SIZE = 55
 
 
 def softmax(a):

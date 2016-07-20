@@ -58,6 +58,13 @@ def code_to_vec(code):
     return numpy.concatenate([c.flatten()])
 
 
+def read_data_for_lstm_ctc(img_glob):
+    for fname in sorted(glob.glob(img_glob)):
+        im = cv2.imread(fname)[:, :, 0].astype(numpy.float32) / 255.
+        code = list(fname.split("/")[1].split("_")[1])
+        yield im, code
+
+
 def read_data(img_glob):
     for fname in sorted(glob.glob(img_glob)):
         im = cv2.imread(fname)[:, :, 0].astype(numpy.float32) / 255.
@@ -119,6 +126,17 @@ def read_batches(batch_size):
 
     while True:
         yield unzip(gen_vecs())
+
+
+@mpgen
+def read_batches_for_bdlstm_ctc(batch_size):
+    def gen_vecs():
+        for im, c, p in gen.generate_ims(batch_size):
+            yield im, list(c)
+
+    while True:
+        im, code_list = unzip(gen_vecs())
+        yield im.swapaxes(0, 2).swapaxes(1, 2), code_list
 
 
 def train(report_steps, batch_size, initial_weights=None):
@@ -245,4 +263,3 @@ if __name__ == "__main__":
     train(report_steps=500,
           batch_size=64,
           initial_weights=initial_weights)
-

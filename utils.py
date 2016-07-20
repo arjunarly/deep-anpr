@@ -1,5 +1,14 @@
+import os
+
+import cv2
 import numpy as np
 import tensorflow as tf
+import random
+
+import common
+import gen
+import train
+from train import read_batches_for_bdlstm_ctc, unzip
 
 
 def target_list_to_sparse_tensor(targetList):
@@ -33,6 +42,16 @@ def test_edit_distance():
         print(dist)
 
 
+def convert_code_to_spare_tensor(inputList, targetList):
+    assert inputList.shape[1] == len(targetList)
+    batch_size = len(targetList)
+    maxSteps = gen.OUTPUT_SHAPE[1]
+    # nFeatures = gen.OUTPUT_SHAPE[0]
+    batchSeqLengths = np.ones(batch_size) * maxSteps
+    return (inputList, target_list_to_sparse_tensor(targetList),
+            batchSeqLengths)
+
+
 def data_lists_to_batches(inputList, targetList, batchSize):
     '''
     Takes a list of input matrices and a list of target arrays and returns
@@ -49,6 +68,7 @@ def data_lists_to_batches(inputList, targetList, batchSize):
     '''
 
     assert len(inputList) == len(targetList)
+    print targetList[1]
     nFeatures = inputList[0].shape[0]
     maxSteps = 0
     for inp in inputList:
@@ -76,6 +96,12 @@ def data_lists_to_batches(inputList, targetList, batchSize):
     return (dataBatches, maxSteps)
 
 
+def get_batched_data(batch_size):
+    batch_iter = read_batches_for_bdlstm_ctc(batch_size)
+    for ims, codes in batch_iter:
+        print im.shape, code
+
+
 def load_batched_data(specPath, targetPath, batchSize):
     import os
     '''
@@ -92,7 +118,17 @@ if __name__ == '__main__':
     INPUT_PATH = './sample_data/mfcc/'  # directory of MFCC nFeatures x nFrames 2-D array .npy files
     TARGET_PATH = './sample_data/char_y/'  # directory of nCharacters 1-D array .npy files
 
-    spec = np.load(INPUT_PATH + "1.npy")
-    target = np.load(TARGET_PATH + "1.npy")
-    print spec.shape, target.shape
-    print spec[:, 0], target[:]
+    spec = [np.load(os.path.join(INPUT_PATH, fn)) for fn in os.listdir(INPUT_PATH)]
+    target = [np.load(os.path.join(TARGET_PATH, fn)) for fn in os.listdir(TARGET_PATH)]
+    for i in range(5):
+        print max(target[i])
+    load_batched_data(INPUT_PATH, TARGET_PATH, 4)
+    # print spec.shape, target.shape
+    print target[1]
+
+    batch_iter = read_batches_for_bdlstm_ctc(4)
+    for im, code in batch_iter:
+        print code[1]
+        break
+    test_input, test_code = unzip(list(train.read_data_for_lstm_ctc("test/*.png"))[:common.TEST_SIZE])
+    print test_code[0:10]
