@@ -16,3 +16,4 @@ weights.npz
 .DS_Store
 bgs/
 *.png
+*.npz
