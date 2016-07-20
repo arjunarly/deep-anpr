@@ -126,9 +126,11 @@ if __name__ == '__main__':
     # print spec.shape, target.shape
     print target[1]
 
-    batch_iter = read_batches_for_bdlstm_ctc(4)
+    batch_iter = read_batches_for_bdlstm_ctc(10)
     for im, code in batch_iter:
-        print code[1]
+        print im.shape
         break
     test_input, test_code = unzip(list(train.read_data_for_lstm_ctc("test/*.png"))[:common.TEST_SIZE])
-    print test_code[0:10]
+    t = test_input.swapaxes(0, 1).swapaxes(0, 2)
+    print test_input.shape,t.shape
+    print len(test_code)

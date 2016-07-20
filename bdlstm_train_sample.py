@@ -27,9 +27,6 @@ import train
 from train import read_batches, read_batches_for_bdlstm_ctc, unzip
 from utils import load_batched_data, target_list_to_sparse_tensor, convert_code_to_spare_tensor
 
-INPUT_PATH = './sample_data/mfcc/'  # directory of MFCC nFeatures x nFrames 2-D array .npy files
-TARGET_PATH = './sample_data/char_y/'  # directory of nCharacters 1-D array .npy files
-
 # Learning Parameters
 learningRate = 0.001
 momentum = 0.9
@@ -43,10 +40,9 @@ report_steps = 100
 
 # Load data
 print('Loading data')
-# maxTimeStep
-# batchedData, maxTimeSteps, totalN = load_batched_data(INPUT_PATH, TARGET_PATH, batchSize)
 maxSteps = gen.OUTPUT_SHAPE[1]
 nFeatures = gen.OUTPUT_SHAPE[0]
+
 # Define graph
 print('Defining graph')
 
@@ -61,7 +57,7 @@ with graph.as_default():
     # NOTE: try variable-steps inputs and dynamic bidirectional rnn, when it's implemented in tensorflow
 
     # Graph input
-    inputX = tf.placeholder(tf.float32, shape=(maxSteps, common.BATCH_SIZE, nFeatures))
+    inputX = tf.placeholder(tf.float32, shape=(maxSteps, None, nFeatures))
     # Prep input data to fit requirements of rnn.bidirectional_rnn
     # Reshape to 2-D tensor (nTimeSteps*batchSize, nfeatures)
     inputXrs = tf.reshape(inputX, [-1, nFeatures])
@@ -71,7 +67,7 @@ with graph.as_default():
     targetVals = tf.placeholder(tf.int32)
     targetShape = tf.placeholder(tf.int64)
     targetY = tf.SparseTensor(targetIxs, targetVals, targetShape)
-    seqLengths = tf.placeholder(tf.int32, shape=(common.BATCH_SIZE))
+    seqLengths = tf.placeholder(tf.int32, shape=(None))
 
     # Weights & biases
     weightsOutH1 = tf.Variable(tf.truncated_normal([2, nHidden],
@@ -109,7 +105,9 @@ with graph.as_default():
 with tf.Session(graph=graph) as session:
     print('Initializing')
     tf.initialize_all_variables().run()
-    test_input, test_codes = unzip(list(train.read_data_for_lstm_ctc("test/*.png"))[:common.TEST_SIZE])
+    test_input, test_codes = unzip(list(train.read_data_for_lstm_ctc("test/*.png"))[:common.BATCH_SIZE])
+    test_input = test_input.swapaxes(0, 1).swapaxes(0, 2)
+
     test_batchInputs, test_batchTargetSparse, test_batchSeqLengths = convert_code_to_spare_tensor(test_input,
                                                                                                   test_codes)
     test_batchTargetIxs, test_batchTargetVals, test_batchTargetShape = test_batchTargetSparse
@@ -120,6 +118,7 @@ with tf.Session(graph=graph) as session:
                     targetShape: test_batchTargetShape, seqLengths: test_batchSeqLengths}
         l, pred, errR, steps, lr_rate = session.run([loss, predictions, errorRate, global_step, learning_rate],
                                                     feed_dict=feedDict)
+        print("loss:", l, "step:", steps, "lr_rate:", lr_rate, "pred:", pred, "errorRate:", errR)
 
         # num_correct = numpy.sum(numpy.all(r[0] == r[1], axis=1))
         # r_short = (r[0][:common.TEST_SIZE], r[1][:common.TEST_SIZE])
@@ -151,8 +150,8 @@ with tf.Session(graph=graph) as session:
             feedDict = {inputX: batchInputs, targetIxs: batchTargetIxs, targetVals: batchTargetVals,
                         targetShape: batchTargetShape, seqLengths: batchSeqLengths}
             _, l, er, lmt = session.run([optimizer, loss, errorRate, logitsMaxTest], feed_dict=feedDict)
-            print(np.unique(
-                lmt))  # print unique argmax values of first sample in batch; should be blank for a while, then spit out target values
+            # print(np.unique(
+            #    lmt))  # print unique argmax values of first sample in batch; should be blank for a while, then spit out target values
             if batch_idx % report_steps == 0:
                 do_report()
                 batch_time = time.time()
