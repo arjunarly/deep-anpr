@@ -12,10 +12,14 @@ from __future__ import division
 from __future__ import print_function
 
 import tensorflow as tf
+import time
 from tensorflow.contrib.ctc import ctc_ops as ctc
 from tensorflow.python.ops import rnn_cell
 from tensorflow.python.ops.rnn import bidirectional_rnn
 import numpy as np
+
+import common
+from train import read_batches
 from utils import load_batched_data
 
 INPUT_PATH = './sample_data/mfcc/'  # directory of MFCC nFeatures x nFrames 2-D array .npy files
@@ -96,6 +100,13 @@ with tf.Session(graph=graph) as session:
         print('Epoch', epoch + 1, '...')
         batchErrors = np.zeros(len(batchedData))
         batchRandIxs = np.random.permutation(len(batchedData))  # randomize batch order
+
+        last_batch_idx = 0
+        last_batch_time = time.time()
+        batch_iter = enumerate(read_batches(common.BATCH_SIZE))
+        for batch_idx, (batch_xs, batch_ys) in batch_iter:
+
+
         for batch, batchOrigI in enumerate(batchRandIxs):
             batchInputs, batchTargetSparse, batchSeqLengths = batchedData[batchOrigI]
             batchTargetIxs, batchTargetVals, batchTargetShape = batchTargetSparse
