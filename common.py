@@ -22,6 +22,7 @@
 Definitions that don't fit elsewhere.
 
 """
+import random
 
 __all__ = (
     'DIGITS',
@@ -35,7 +36,6 @@ DIGITS = "0123456789"
 # LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 CHARS = DIGITS
-LENGTH = 7
 TEST_SIZE = 200
 
 OUTPUT_SHAPE = (64, 200)
@@ -47,6 +47,7 @@ DECAY_STEPS = 10000
 # parameters for bdlstm ctc
 MAX_LENGTH = 20  # max length of the sequence
 MIN_LENGTH = 16  # min length of the sequence
+
 BATCH_SIZE = 64
 
 
@@ -57,3 +58,7 @@ def softmax(a):
 
 def sigmoid(a):
     return 1. / (1. + numpy.exp(-a))
+
+
+def get_lenth():
+    return random.randint(MIN_LENGTH, MAX_LENGTH)

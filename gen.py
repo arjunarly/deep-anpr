@@ -158,7 +158,7 @@ def generate_code():
     f = ""
     append_blank = random.choice([True, False])
 
-    for i in range(common.LENGTH):
+    for i in range(common.get_lenth()):
         if 0 == i % 4 and append_blank:
             f = f + ' '
         f = f + random.choice(common.DIGITS)
