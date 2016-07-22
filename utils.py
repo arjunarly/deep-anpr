@@ -42,12 +42,19 @@ def test_edit_distance():
         print(dist)
 
 
+"""
+    inputList has the shape (steps*batchSize*nFeatures)
+"""
+
+
 def convert_code_to_spare_tensor(inputList, targetList):
     assert inputList.shape[1] == len(targetList)
     batch_size = len(targetList)
     maxSteps = gen.OUTPUT_SHAPE[1]
-    # nFeatures = gen.OUTPUT_SHAPE[0]
-    batchSeqLengths = np.ones(batch_size) * maxSteps
+    #print "maxSteps",maxSteps
+    batchSeqLengths = np.ones(batch_size) * maxSteps  # the number of timesteps for each sample in batch
+    #print batchSeqLengths
+    #print batchSeqLengths
     return (inputList, target_list_to_sparse_tensor(targetList),
             batchSeqLengths)
 
@@ -115,6 +122,7 @@ def load_batched_data(specPath, targetPath, batchSize):
 
 
 if __name__ == '__main__':
+    """
     INPUT_PATH = './sample_data/mfcc/'  # directory of MFCC nFeatures x nFrames 2-D array .npy files
     TARGET_PATH = './sample_data/char_y/'  # directory of nCharacters 1-D array .npy files
 
@@ -130,7 +138,8 @@ if __name__ == '__main__':
     for im, code in batch_iter:
         print code
         break
-    test_input, test_code = unzip(list(train.read_data_for_lstm_ctc("test/*.png"))[:common.TEST_SIZE])
+    """
+    test_input, test_code = unzip(list(train.read_data_for_lstm_ctc("test/*.png"))[:4])
     t = test_input.swapaxes(0, 1).swapaxes(0, 2)
-    print test_input.shape,t.shape
-    print len(test_code)
+
+    a, b, c = convert_code_to_spare_tensor(t, test_code)

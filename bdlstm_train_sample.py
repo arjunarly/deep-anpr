@@ -33,7 +33,7 @@ momentum = 0.9
 nEpochs = 300
 
 # Network Parameters
-nHidden = 128
+nHidden = 1024
 nClasses = 11  # 11 characters[0,9], plus the "blank" for CTC
 
 report_steps = 50
@@ -122,6 +122,12 @@ with tf.Session(graph=graph) as session:
         print("step:", steps, "loss:", l, "lr_rate:", lr_rate, "lmt:", np.unique(lmt))
 
 
+    batch_iter = enumerate(read_batches_for_bdlstm_ctc(common.BATCH_SIZE))
+    train_list = list()
+    for i, (ims, codes) in batch_iter:
+        train_list.append((ims, codes))
+        if i > 100:
+            break
     for epoch in range(nEpochs):
         print('Epoch', epoch + 1, '...')
         # batchErrors = np.zeros(len(batchedData))
@@ -129,15 +135,15 @@ with tf.Session(graph=graph) as session:
 
         last_batch_idx = 0
         last_batch_time = time.time()
-        batch_iter = enumerate(read_batches_for_bdlstm_ctc(common.BATCH_SIZE))
-        for batch_idx, (ims, codes) in batch_iter:
+
+        for batch_idx, (ims, codes) in enumerate(train_list):
             batchInputs, batchTargetSparse, batchSeqLengths = convert_code_to_spare_tensor(ims, codes)
             batchTargetIxs, batchTargetVals, batchTargetShape = batchTargetSparse
             # print(batchTargetVals)
             feedDict = {inputX: batchInputs, targetIxs: batchTargetIxs, targetVals: batchTargetVals,
                         targetShape: batchTargetShape, seqLengths: batchSeqLengths}
             _, l, er, lmt = session.run([optimizer, loss, errorRate, logitsMaxTest], feed_dict=feedDict)
-            #print(np.unique(lmt))  # print unique argmax values of first sample in batch; should be blank for a while, then spit out target values
+            # print(np.unique(lmt))  # print unique argmax values of first sample in batch; should be blank for a while, then spit out target values
             if batch_idx % report_steps == 0:
                 do_report()
                 batch_time = time.time()
