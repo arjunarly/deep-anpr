@@ -34,16 +34,15 @@ import numpy
 DIGITS = "0123456789"
 # LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-
 CHARS = DIGITS
-LENGTH = 3
+LENGTH = 7
 TEST_SIZE = 200
 
 OUTPUT_SHAPE = (64, 200)
 
 LEARNING_RATE_DECAY_FACTOR = 0.9  # The learning rate decay factor
 INITIAL_LEARNING_RATE = 0.00001
-DECAY_STEPS = 1000
+DECAY_STEPS = 10000
 
 # parameters for bdlstm ctc
 MAX_LENGTH = 20  # max length of the sequence
