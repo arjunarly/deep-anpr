@@ -34,7 +34,6 @@ import tensorflow as tf
 
 import common
 
-WINDOW_SHAPE = (64, 128)
 
 
 # Utility functions
@@ -109,10 +108,10 @@ def get_training_model():
     x, conv_layer, conv_vars = convolutional_layers()
 
     # Densely connected layer
-    W_fc1 = weight_variable([32 * 8 * 128, 2048])
+    W_fc1 = weight_variable([32 * 8 * common.OUTPUT_SHAPE[1], 2048])
     b_fc1 = bias_variable([2048])
 
-    conv_layer_flat = tf.reshape(conv_layer, [-1, 32 * 8 * 128])
+    conv_layer_flat = tf.reshape(conv_layer, [-1, 32 * 8 * common.OUTPUT_SHAPE[1]])
     h_fc1 = tf.nn.relu(tf.matmul(conv_layer_flat, W_fc1) + b_fc1)
 
     # Output layer

@@ -48,8 +48,6 @@ import common
 fonts = ["fonts/Farrington-7B-Qiqi.ttf", "fonts/Arial.ttf", "fonts/times.ttf"]
 FONT_HEIGHT = 32  # Pixel size to which the chars are resized
 
-OUTPUT_SHAPE = (64, 128)
-
 CHARS = common.CHARS + " "
 
 
@@ -137,7 +135,7 @@ def make_affine_transform(from_shape, to_shape,
 
     # Set the scale as large as possible such that the skewed and scaled shape
     # is less than or equal to the desired ratio in either dimension.
-    scale *= numpy.min(to_size / skewed_size)*1.1
+    scale *= numpy.min(to_size / skewed_size) * 1.1
 
     # Set the translation such that the skewed and scaled image falls within
     # the output shape's bounds.
@@ -218,13 +216,13 @@ def generate_bg(num_bg_images):
         fname = "bgs/{:08d}.jpg".format(random.randint(0, num_bg_images - 1))
         # fname = "bgs/12345678.jpg"
         bg = cv2.imread(fname, cv2.CV_LOAD_IMAGE_GRAYSCALE) / 255.
-        if (bg.shape[1] >= OUTPUT_SHAPE[1] and
-                    bg.shape[0] >= OUTPUT_SHAPE[0]):
+        if (bg.shape[1] >= common.OUTPUT_SHAPE[1] and
+                    bg.shape[0] >= common.OUTPUT_SHAPE[0]):
             found = True
 
-    x = random.randint(0, bg.shape[1] - OUTPUT_SHAPE[1])
-    y = random.randint(0, bg.shape[0] - OUTPUT_SHAPE[0])
-    bg = bg[y:y + OUTPUT_SHAPE[0], x:x + OUTPUT_SHAPE[1]]
+    x = random.randint(0, bg.shape[1] - common.OUTPUT_SHAPE[1])
+    y = random.randint(0, bg.shape[0] - common.OUTPUT_SHAPE[0])
+    bg = bg[y:y + common.OUTPUT_SHAPE[0], x:x + common.OUTPUT_SHAPE[1]]
 
     return bg
 
@@ -246,7 +244,7 @@ def generate_im(char_ims, num_bg_images):
     plate_mask = cv2.warpAffine(plate_mask, M, (bg.shape[1], bg.shape[0]))
 
     out = plate * plate_mask + bg * (1 - plate_mask)
-    out = cv2.resize(out, (OUTPUT_SHAPE[1], OUTPUT_SHAPE[0]))
+    out = cv2.resize(out, (common.OUTPUT_SHAPE[1], common.OUTPUT_SHAPE[0]))
 
     out += numpy.random.normal(scale=0.05, size=out.shape)
     out = numpy.clip(out, 0., 1.)

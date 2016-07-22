@@ -205,8 +205,7 @@ def train(report_steps, batch_size, initial_weights=None):
 
         print ("batch:{:3d}, hit_rate:{:2.02f}%,cross_entropy:{}, learning_rate:{},global_step:{} ").format(batch_idx,
                                                                                                             100. * num_correct / (
-                                                                                                                len(r[
-                                                                                                                        0])),
+                                                                                                                len(r[0])),
                                                                                                             r[2], r[3],
                                                                                                             r[4])
 
