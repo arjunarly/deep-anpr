@@ -70,21 +70,19 @@ with graph.as_default():
     seqLengths = tf.placeholder(tf.int32, shape=(common.BATCH_SIZE))
 
     # Weights & biases
-    weightsOutH1 = tf.Variable(tf.truncated_normal([2, nHidden],
-                                                   stddev=np.sqrt(2.0 / (2 * nHidden))))
+    weightsOutH1 = tf.Variable(tf.truncated_normal([2, nHidden], stddev=np.sqrt(2.0 / (2 * nHidden))))
     biasesOutH1 = tf.Variable(tf.zeros([nHidden]))
-    weightsOutH2 = tf.Variable(tf.truncated_normal([2, nHidden],
-                                                   stddev=np.sqrt(2.0 / (2 * nHidden))))
+
+    weightsOutH2 = tf.Variable(tf.truncated_normal([2, nHidden], stddev=np.sqrt(2.0 / (2 * nHidden))))
     biasesOutH2 = tf.Variable(tf.zeros([nHidden]))
-    weightsClasses = tf.Variable(tf.truncated_normal([nHidden, nClasses],
-                                                     stddev=np.sqrt(2.0 / nHidden)))
+    weightsClasses = tf.Variable(tf.truncated_normal([nHidden, nClasses], stddev=np.sqrt(2.0 / nHidden)))
     biasesClasses = tf.Variable(tf.zeros([nClasses]))
 
     # Network
     forwardH1 = rnn_cell.LSTMCell(nHidden, use_peepholes=True, state_is_tuple=True)
     backwardH1 = rnn_cell.LSTMCell(nHidden, use_peepholes=True, state_is_tuple=True)
-    fbH1, _, _ = bidirectional_rnn(forwardH1, backwardH1, inputList, dtype=tf.float32,
-                                   scope='BDLSTM_H1')
+
+    fbH1, _, _ = bidirectional_rnn(forwardH1, backwardH1, inputList, dtype=tf.float32, scope='BDLSTM_H1')
     fbH1rs = [tf.reshape(t, [common.BATCH_SIZE, 2, nHidden]) for t in fbH1]
     outH1 = [tf.reduce_sum(tf.mul(t, weightsOutH1), reduction_indices=1) + biasesOutH1 for t in fbH1rs]
 
