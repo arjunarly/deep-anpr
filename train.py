@@ -53,8 +53,8 @@ def code_to_vec(code):
         y[common.CHARS.index(c)] = 1.0
         return y
 
+    code = str(len(code)) + code
     c = numpy.vstack([char_to_vec(c) for c in code])
-    # print "c.shape():{}".format(c.shape)
     return numpy.concatenate([c.flatten()])
 
 
@@ -70,7 +70,7 @@ def read_data(img_glob):
         im = cv2.imread(fname)[:, :, 0].astype(numpy.float32) / 255.
         code = fname.split("/")[1].split("_")[1]
         # print fname.split("/")[1].split("_")[2].replace(".png", "")
-        p = fname.split("/")[1].split("_")[2].replace(".png", "") == '1'
+        # p = fname.split("/")[1].split("_")[2].replace(".png", "") == '1'
 
         yield im, code_to_vec(code)
 
@@ -123,7 +123,6 @@ def read_batches(batch_size):
     def gen_vecs():
         for im, c, p in gen.generate_ims(batch_size):
             yield im, code_to_vec(c)
-
     while True:
         yield unzip(gen_vecs())
 
@@ -173,7 +172,7 @@ def train(report_steps, batch_size, initial_weights=None):
     # y is the predicted value
     x, y, params = model.get_training_model()
 
-    y_ = tf.placeholder(tf.float32, [None, common.LENGTH * len(common.CHARS)])
+    y_ = tf.placeholder(tf.float32, [None, common.OUTPUT_LENGTH * len(common.CHARS)])
 
     digits_loss = tf.nn.softmax_cross_entropy_with_logits(tf.reshape(y, [-1, len(common.CHARS)]),
                                                           tf.reshape(y_, [-1, len(common.CHARS)]))
@@ -181,9 +180,9 @@ def train(report_steps, batch_size, initial_weights=None):
 
     train_step = tf.train.AdamOptimizer(learning_rate).minimize(cross_entropy, global_step=global_step)
 
-    predict = tf.argmax(tf.reshape(y, [-1, common.LENGTH, len(common.CHARS)]), 2)
+    predict = tf.argmax(tf.reshape(y, [-1, common.OUTPUT_LENGTH, len(common.CHARS)]), 2)
 
-    real_value = tf.argmax(tf.reshape(y_, [-1, common.LENGTH, len(common.CHARS)]), 2)
+    real_value = tf.argmax(tf.reshape(y_, [-1, common.OUTPUT_LENGTH, len(common.CHARS)]), 2)
 
     if initial_weights is not None:
         assert len(params) == len(initial_weights)
@@ -205,7 +204,8 @@ def train(report_steps, batch_size, initial_weights=None):
 
         print ("batch:{:3d}, hit_rate:{:2.02f}%,cross_entropy:{}, learning_rate:{},global_step:{} ").format(batch_idx,
                                                                                                             100. * num_correct / (
-                                                                                                                len(r[0])),
+                                                                                                                len(r[
+                                                                                                                        0])),
                                                                                                             r[2], r[3],
                                                                                                             r[4])
 

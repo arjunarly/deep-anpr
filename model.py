@@ -35,7 +35,6 @@ import tensorflow as tf
 import common
 
 
-
 # Utility functions
 def weight_variable(shape):
     initial = tf.truncated_normal(shape, stddev=0.5)
@@ -115,8 +114,8 @@ def get_training_model():
     h_fc1 = tf.nn.relu(tf.matmul(conv_layer_flat, W_fc1) + b_fc1)
 
     # Output layer
-    W_fc2 = weight_variable([4096, common.LENGTH * len(common.CHARS)])
-    b_fc2 = bias_variable([common.LENGTH * len(common.CHARS)])
+    W_fc2 = weight_variable([4096, common.OUTPUT_LENGTH * len(common.CHARS)])
+    b_fc2 = bias_variable([common.OUTPUT_LENGTH * len(common.CHARS)])
 
     y = tf.matmul(h_fc1, W_fc2) + b_fc2
 
@@ -142,8 +141,8 @@ def get_detect_model():
                                 stride=(1, 1), padding="VALID") + b_fc1)
     # Fifth layer
     W_fc2 = weight_variable([4096, common.LENGTH * len(common.CHARS)])
-    W_conv2 = tf.reshape(W_fc2, [1, 1, 4096, common.LENGTH * len(common.CHARS)])
-    b_fc2 = bias_variable([common.LENGTH * len(common.CHARS)])
+    W_conv2 = tf.reshape(W_fc2, [1, 1, 4096, common.OUTPUT_LENGTH * len(common.CHARS)])
+    b_fc2 = bias_variable([common.OUTPUT_LENGTH * len(common.CHARS)])
     h_conv2 = conv2d(h_conv1, W_conv2) + b_fc2
 
     return (x, h_conv2, conv_vars + [W_fc1, b_fc1, W_fc2, b_fc2])

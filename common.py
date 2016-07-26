@@ -47,6 +47,7 @@ DECAY_STEPS = 10000
 # parameters for bdlstm ctc
 MAX_LENGTH = 20  # max length of the sequence
 MIN_LENGTH = 16  # min length of the sequence
+OUTPUT_LENGTH = MAX_LENGTH + 1
 
 BATCH_SIZE = 64
 
