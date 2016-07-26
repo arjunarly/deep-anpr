@@ -164,7 +164,7 @@ def train(report_steps, batch_size, initial_weights=None):
 
     """
     global_step = tf.Variable(0, trainable=False)
-    batch_idx = tf.placeholder(tf.int32)
+    batch_count = tf.placeholder(tf.int32)
     learning_rate = tf.train.exponential_decay(common.INITIAL_LEARNING_RATE,
                                                global_step,
                                                common.DECAY_STEPS,
@@ -203,9 +203,10 @@ def train(report_steps, batch_size, initial_weights=None):
         for pred, real in zip(*r_short):
             print "{} <--> {} ".format(vec_to_plate(real), vec_to_plate(pred))
 
-        print ("batch:{:3d}, hit_rate:{:2.02f}%,cross_entropy:{}, learning_rate:{},global_step:{} ").format(batch_idx,
+        print ("batch:{:3d}, hit_rate:{:2.02f}%,cross_entropy:{}, learning_rate:{},global_step:{} ").format(batch_count,
                                                                                                             100. * num_correct / (
-                                                                                                                len(r[0])),
+                                                                                                                len(r[
+                                                                                                                        0])),
                                                                                                             r[2], r[3],
                                                                                                             r[4])
 
@@ -215,7 +216,7 @@ def train(report_steps, batch_size, initial_weights=None):
     def do_batch():
         sess.run(train_step,
                  feed_dict={x: batch_xs, y_: batch_ys})
-        if batch_idx % report_steps == 0:
+        if batch_count % report_steps == 0:
             do_report()
 
     gpu_options = tf.GPUOptions(
@@ -226,29 +227,34 @@ def train(report_steps, batch_size, initial_weights=None):
             sess.run(assign_ops)
 
         test_xs, test_ys = unzip(list(read_data("test/*.png"))[:common.TEST_SIZE])
+        train_xs, train_ys = unzip(list(read_data("train/*.png")))
+
         # print "test_xs.shape:{}".format(test_xs.shape)
+        batch_count = 0
+        for epoch in range(common.EPOCHS):
+            train_steps = common.TRAIN_SIZE / common.BATCH_SIZE
+            try:
+                for step in range(train_steps):
+                    print "epoch:{},train_steps:{},batch_count:{}".format(epoch, train_steps, batch_count)
+                    batch_xs = train_xs[step * common.BATCH_SIZE:(step + 1) * common.BATCH_SIZE]
+                    batch_ys = train_ys[step * common.BATCH_SIZE:(step + 1) * common.BATCH_SIZE]
+                    # for batch_count, (batch_xs, batch_ys) in batch_iter:
+                    # print "batch_ys.shape():{}".format(batch_ys.shape)
+                    do_batch()
+                    # if batch_count % report_steps == 0:
+                    #    batch_time = time.time()
+                    #    if last_batch_idx != batch_count:
+                    #        print "time for 60 batches {}s".format(
+                    #            60 * (last_batch_time - batch_time) /
+                    #            (last_batch_idx - batch_count))
+                    #        last_batch_idx = batch_count
+                    #        last_batch_time = batch_time
+                    batch_count = batch_count + 1
 
-        try:
-            last_batch_idx = 0
-            last_batch_time = time.time()
-            batch_iter = enumerate(read_batches(batch_size))
-            for batch_idx, (batch_xs, batch_ys) in batch_iter:
-                # print "batch_ys.shape():{}".format(batch_ys.shape)
-                do_batch()
-                if batch_idx % report_steps == 0:
-                    batch_time = time.time()
-                    if last_batch_idx != batch_idx:
-                        print "time for 60 batches {}s".format(
-                            60 * (last_batch_time - batch_time) /
-                            (last_batch_idx - batch_idx))
-                        last_batch_idx = batch_idx
-                        last_batch_time = batch_time
-
-        except KeyboardInterrupt:
-
-            last_weights = [p.eval() for p in params]
-            numpy.savez("weights.npz", *last_weights)
-            return last_weights
+            except KeyboardInterrupt:
+                last_weights = [p.eval() for p in params]
+                numpy.savez("weights.npz", *last_weights)
+                return last_weights
 
 
 if __name__ == "__main__":
@@ -259,6 +265,6 @@ if __name__ == "__main__":
     else:
         initial_weights = None
 
-    train(report_steps=500,
+    train(report_steps=50,
           batch_size=64,
           initial_weights=initial_weights)

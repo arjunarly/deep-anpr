@@ -45,8 +45,8 @@ from PIL import ImageFont
 
 import common
 
-#fonts = ["fonts/Farrington-7B-Qiqi.ttf", "fonts/Arial.ttf", "fonts/times.ttf"]
-fonts = ["fonts/Farrington-7B-Qiqi.ttf"]
+fonts = ["fonts/Farrington-7B-Qiqi.ttf", "fonts/Arial.ttf", "fonts/times.ttf"]
+# fonts = ["fonts/Farrington-7B-Qiqi.ttf"]
 FONT_HEIGHT = 32  # Pixel size to which the chars are resized
 
 CHARS = common.CHARS + " "
@@ -271,12 +271,13 @@ def generate_ims(num_images):
 
 
 if __name__ == "__main__":
-    if not os.path.exists("test"):
-        os.mkdir("test")
-    # im_gen = generate_ims(int(sys.argv[1]))
-    im_gen = generate_ims(common.TEST_SIZE)
-    for img_idx, (im, c, p) in enumerate(im_gen):
-        fname = "test/{:08d}_{}_{}.png".format(img_idx, c,
-                                               "1" if p else "0")
-        print fname
-        cv2.imwrite(fname, im * 255.)
+    dirs = ["test", "train"]
+    size = {"test": common.TEST_SIZE, "train": common.TRAIN_SIZE}
+    for dir_name in dirs:
+        if not os.path.exists(dir_name):
+            os.mkdir(dir_name)
+        im_gen = generate_ims(size.get(dir_name))
+        for img_idx, (im, c, p) in enumerate(im_gen):
+            fname = dir_name + "/{:08d}_{}_{}.png".format(img_idx, c, "1" if p else "0")
+            print fname
+            cv2.imwrite(fname, im * 255.)
