@@ -235,7 +235,7 @@ def train(report_steps, batch_size, initial_weights=None):
             train_steps = common.TRAIN_SIZE / common.BATCH_SIZE
             try:
                 for step in range(train_steps):
-                    print "epoch:{},train_steps:{},batch_count:{}".format(epoch, train_steps, batch_count)
+                    print "epoch:{},train_steps_per_epoch:{},batch_count:{}".format(epoch, train_steps, batch_count)
                     batch_xs = train_xs[step * common.BATCH_SIZE:(step + 1) * common.BATCH_SIZE]
                     batch_ys = train_ys[step * common.BATCH_SIZE:(step + 1) * common.BATCH_SIZE]
                     # for batch_count, (batch_xs, batch_ys) in batch_iter:
