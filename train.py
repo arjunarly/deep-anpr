@@ -205,17 +205,13 @@ def train(report_steps, batch_size, initial_weights=None):
 
         print ("batch:{:3d}, hit_rate:{:2.02f}%,cross_entropy:{}, learning_rate:{},global_step:{} ").format(batch_idx,
                                                                                                             100. * num_correct / (
-                                                                                                                len(r[
-                                                                                                                        0])),
-                                                                                                            r[2], r[3],
-                                                                                                            r[4])
+                                                                                                                len(r[ 0])),r[2], r[3], r[4])
 
         last_weights = [p.eval() for p in params]
         numpy.savez("weights.npz", *last_weights)
 
     def do_batch():
-        sess.run(train_step,
-                 feed_dict={x: batch_xs, y_: batch_ys})
+        sess.run(train_step, feed_dict={x: batch_xs, y_: batch_ys})
         if batch_idx % report_steps == 0:
             do_report()
 
@@ -234,7 +230,8 @@ def train(report_steps, batch_size, initial_weights=None):
             last_batch_time = time.time()
             batch_iter = enumerate(read_batches(batch_size))
             for batch_idx, (batch_xs, batch_ys) in batch_iter:
-                # print "batch_ys.shape():{}".format(batch_ys.shape)
+                print "batch_ys.shape():{}".format(batch_ys.shape)
+                print "batch_xs.shape():{}".format(batch_xs.shape)
                 do_batch()
                 if batch_idx % report_steps == 0:
                     batch_time = time.time()

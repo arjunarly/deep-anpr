@@ -57,17 +57,17 @@ with graph.as_default():
     # NOTE: try variable-steps inputs and dynamic bidirectional rnn, when it's implemented in tensorflow
 
     # Graph input
-    inputX = tf.placeholder(tf.float32, shape=(maxSteps, common.BATCH_SIZE, nFeatures))
+    inputX = tf.placeholder(tf.float32, shape=(maxSteps, common.BATCH_SIZE, nFeatures))  # maxSteps*batchSize*nFeatures
     # Prep input data to fit requirements of rnn.bidirectional_rnn
-    # Reshape to 2-D tensor (nTimeSteps*batchSize, nfeatures)
-    inputXrs = tf.reshape(inputX, [-1, nFeatures])
+    # Reshape to 2-D tensor (nTimeSteps*batchSize, nFeatures)
+    inputXrs = tf.reshape(inputX, [-1, nFeatures])  # maxTimeSteps*batchSize,nFeatures
     # Split to get a list of 'n_steps' tensors of shape (batch_size, n_hidden)
-    inputList = tf.split(0, maxSteps, inputXrs)
+    inputList = tf.split(0, maxSteps, inputXrs)  # [(batchSize,nFeatures), (batchSize,nFeatures),...]
     targetIxs = tf.placeholder(tf.int64)
     targetVals = tf.placeholder(tf.int32)
     targetShape = tf.placeholder(tf.int64)
     targetY = tf.SparseTensor(targetIxs, targetVals, targetShape)
-    seqLengths = tf.placeholder(tf.int32, shape=(common.BATCH_SIZE))
+    seqLengths = tf.placeholder(tf.int32, shape=(common.BATCH_SIZE)) #
 
     # Weights & biases
     weightsOutH1 = tf.Variable(tf.truncated_normal([2, nHidden], stddev=np.sqrt(2.0 / (2 * nHidden))))
@@ -75,6 +75,7 @@ with graph.as_default():
 
     weightsOutH2 = tf.Variable(tf.truncated_normal([2, nHidden], stddev=np.sqrt(2.0 / (2 * nHidden))))
     biasesOutH2 = tf.Variable(tf.zeros([nHidden]))
+
     weightsClasses = tf.Variable(tf.truncated_normal([nHidden, nClasses], stddev=np.sqrt(2.0 / nHidden)))
     biasesClasses = tf.Variable(tf.zeros([nClasses]))
 
@@ -126,6 +127,7 @@ with tf.Session(graph=graph) as session:
         train_list.append((ims, codes))
         if i > 100:
             break
+
     for epoch in range(nEpochs):
         print('Epoch', epoch + 1, '...')
         # batchErrors = np.zeros(len(batchedData))

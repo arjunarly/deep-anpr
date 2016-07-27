@@ -45,7 +45,8 @@ from PIL import ImageFont
 
 import common
 
-fonts = ["fonts/Farrington-7B-Qiqi.ttf", "fonts/Arial.ttf", "fonts/times.ttf"]
+#fonts = ["fonts/Farrington-7B-Qiqi.ttf", "fonts/Arial.ttf", "fonts/times.ttf"]
+fonts = ["fonts/times.ttf"]
 FONT_HEIGHT = 32  # Pixel size to which the chars are resized
 
 OUTPUT_SHAPE = (64, 200)
