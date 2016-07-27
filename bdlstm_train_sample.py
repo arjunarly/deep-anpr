@@ -67,7 +67,7 @@ with graph.as_default():
     targetVals = tf.placeholder(tf.int32)
     targetShape = tf.placeholder(tf.int64)
     targetY = tf.SparseTensor(targetIxs, targetVals, targetShape)
-    seqLengths = tf.placeholder(tf.int32, shape=(common.BATCH_SIZE)) #
+    seqLengths = tf.placeholder(tf.int32, shape=(common.BATCH_SIZE))  #
 
     # Weights & biases
     weightsOutH1 = tf.Variable(tf.truncated_normal([2, nHidden], stddev=np.sqrt(2.0 / (2 * nHidden))))
@@ -118,7 +118,7 @@ with tf.Session(graph=graph) as session:
         l, pred, errR, steps, lr_rate, lmt = session.run(
             [loss, predictions, errorRate, global_step, learning_rate, logitsMaxTest],
             feed_dict=fDict)
-        print("step:", steps, "loss:", l, "lr_rate:", lr_rate, "lmt:", np.unique(lmt))
+        print("step:", steps, "errorRate:", errorRate, "loss:", l, "lr_rate:", lr_rate, "lmt:", np.unique(lmt))
 
 
     batch_iter = enumerate(read_batches_for_bdlstm_ctc(common.BATCH_SIZE))

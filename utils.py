@@ -50,9 +50,10 @@ def test_edit_distance():
 def convert_code_to_spare_tensor(inputList, targetList):
     assert inputList.shape[1] == len(targetList)
     batch_size = len(targetList)
-    maxSteps = gen.OUTPUT_SHAPE[1]
+    maxSteps = common.LENGTH
     #print "maxSteps",maxSteps
     batchSeqLengths = np.ones(batch_size) * maxSteps  # the number of timesteps for each sample in batch
+
     #print batchSeqLengths
     #print batchSeqLengths
     return (inputList, target_list_to_sparse_tensor(targetList),
@@ -81,6 +82,7 @@ def data_lists_to_batches(inputList, targetList, batchSize):
     for inp in inputList:
         maxSteps = max(maxSteps, inp.shape[1])
 
+    # rand Ixs is a  shuffled list of range(len(inputList))
     randIxs = np.random.permutation(len(inputList))
     start, end = (0, batchSize)
     dataBatches = []
