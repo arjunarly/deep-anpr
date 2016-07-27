@@ -165,11 +165,14 @@ def train(report_steps, batch_size, initial_weights=None):
     """
     global_step = tf.Variable(0, trainable=False)
     batch_count = tf.placeholder(tf.int32)
+    """
     learning_rate = tf.train.exponential_decay(common.INITIAL_LEARNING_RATE,
                                                global_step,
                                                common.DECAY_STEPS,
                                                common.LEARNING_RATE_DECAY_FACTOR,
                                                staircase=True)
+    """
+    learning_rate = tf.constant(0.0001)
     # y is the predicted value
     x, y, params = model.get_training_model()
 
@@ -178,13 +181,12 @@ def train(report_steps, batch_size, initial_weights=None):
     digits_loss = tf.nn.softmax_cross_entropy_with_logits(tf.reshape(y, [-1, len(common.CHARS)]),
                                                           tf.reshape(y_, [-1, len(common.CHARS)]))
     cross_entropy = tf.reduce_sum(digits_loss)
-
+    train_step = tf.train.MomentumOptimizer(learning_rate, momentum=0.8).minimize(cross_entropy,
+                                                                                  global_step=global_step)
+    # train_step = tf.train.GradientDescentOptimizer(learning_rate).minimize(cross_entropy, global_step=global_step)
     train_step = tf.train.AdamOptimizer(learning_rate).minimize(cross_entropy, global_step=global_step)
-
     predict = tf.argmax(tf.reshape(y, [-1, common.LENGTH, len(common.CHARS)]), 2)
-
     real_value = tf.argmax(tf.reshape(y_, [-1, common.LENGTH, len(common.CHARS)]), 2)
-
     if initial_weights is not None:
         assert len(params) == len(initial_weights)
         assign_ops = [w.assign(v) for w, v in zip(params, initial_weights)]
@@ -265,6 +267,6 @@ if __name__ == "__main__":
     else:
         initial_weights = None
 
-    train(report_steps=500,
+    train(report_steps=50,
           batch_size=64,
           initial_weights=initial_weights)
