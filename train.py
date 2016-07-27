@@ -181,10 +181,10 @@ def train(report_steps, batch_size, initial_weights=None):
     digits_loss = tf.nn.softmax_cross_entropy_with_logits(tf.reshape(y, [-1, len(common.CHARS)]),
                                                           tf.reshape(y_, [-1, len(common.CHARS)]))
     cross_entropy = tf.reduce_sum(digits_loss)
-    train_step = tf.train.MomentumOptimizer(learning_rate, momentum=0.8).minimize(cross_entropy,
-                                                                                  global_step=global_step)
+    #train_step = tf.train.MomentumOptimizer(learning_rate, momentum=0.8).minimize(cross_entropy,
+    #                                                                              global_step=global_step)
     # train_step = tf.train.GradientDescentOptimizer(learning_rate).minimize(cross_entropy, global_step=global_step)
-    train_step = tf.train.AdamOptimizer(learning_rate).minimize(cross_entropy, global_step=global_step)
+    train_step = tf.train.AdamOptimizer(0.0001).minimize(cross_entropy, global_step=global_step)
     predict = tf.argmax(tf.reshape(y, [-1, common.LENGTH, len(common.CHARS)]), 2)
     real_value = tf.argmax(tf.reshape(y_, [-1, common.LENGTH, len(common.CHARS)]), 2)
     if initial_weights is not None:

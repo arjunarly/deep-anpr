@@ -37,7 +37,6 @@ DIGITS = "0123456789"
 CHARS = DIGITS
 LENGTH = 3
 TEST_SIZE = 200
-TRAIN_SIZE = 9984
 OUT_PUT_NODES = 2048
 
 EPOCHS = 100
@@ -52,6 +51,7 @@ DECAY_STEPS = 500
 MAX_LENGTH = 20  # max length of the sequence
 MIN_LENGTH = 16  # min length of the sequence
 BATCH_SIZE = 64
+TRAIN_SIZE = BATCH_SIZE * 500
 
 
 def softmax(a):
