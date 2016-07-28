@@ -1,9 +1,5 @@
-import os
-
-import cv2
 import numpy as np
 import tensorflow as tf
-import random
 
 import common
 import gen
@@ -17,6 +13,7 @@ def target_list_to_sparse_tensor(targetList):
        (e.g., the integer values of a character map for an ASR target string)
        See https://github.com/tensorflow/tensorflow/blob/master/tensorflow/contrib/ctc/ctc_loss_op_test.py
        for example of SparseTensor format'''
+    # print targetList
     indices = []
     vals = []
     for tI, target in enumerate(targetList):
@@ -46,18 +43,22 @@ def test_edit_distance():
     inputList has the shape (steps*batchSize*nFeatures)
 """
 
+"""
+    inputList is the batchSize *
+"""
+
 
 def convert_code_to_spare_tensor(inputList, targetList):
     assert inputList.shape[1] == len(targetList)
+    #print "inputList.shape", inputList.shape
     batch_size = len(targetList)
-    maxSteps = common.LENGTH
-    #print "maxSteps",maxSteps
-    batchSeqLengths = np.ones(batch_size) * maxSteps  # the number of timesteps for each sample in batch
+    # maxSteps = common.LENGTH
+    # print "maxSteps", maxSteps
+    batchSeqLengths = np.ones(batch_size) * gen.OUTPUT_SHAPE[1] # the number of timesteps for each sample in batch
 
     #print batchSeqLengths
-    #print batchSeqLengths
-    return (inputList, target_list_to_sparse_tensor(targetList),
-            batchSeqLengths)
+    # print batchSeqLengths
+    return (inputList, target_list_to_sparse_tensor(targetList), batchSeqLengths)
 
 
 def data_lists_to_batches(inputList, targetList, batchSize):
@@ -76,7 +77,7 @@ def data_lists_to_batches(inputList, targetList, batchSize):
     '''
 
     assert len(inputList) == len(targetList)
-    print targetList[1]
+    print inputList[0]
     nFeatures = inputList[0].shape[0]
     maxSteps = 0
     for inp in inputList:
@@ -107,8 +108,8 @@ def data_lists_to_batches(inputList, targetList, batchSize):
 
 def get_batched_data(batch_size):
     batch_iter = read_batches_for_bdlstm_ctc(batch_size)
-    for ims, codes in batch_iter:
-        print im.shape, code
+    # for ims, codes in batch_iter:
+    #    print im.shape, code
 
 
 def load_batched_data(specPath, targetPath, batchSize):
@@ -143,5 +144,6 @@ if __name__ == '__main__':
     """
     test_input, test_code = unzip(list(train.read_data_for_lstm_ctc("test/*.png"))[:4])
     t = test_input.swapaxes(0, 1).swapaxes(0, 2)
-
+    print test_code
     a, b, c = convert_code_to_spare_tensor(t, test_code)
+    print target_list_to_sparse_tensor(test_code)

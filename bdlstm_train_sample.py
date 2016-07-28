@@ -33,14 +33,14 @@ momentum = 0.9
 nEpochs = 300
 
 # Network Parameters
-nHidden = 1024
+nHidden = gen.OUTPUT_SHAPE[1]
 nClasses = 11  # 11 characters[0,9], plus the "blank" for CTC
 
 report_steps = 50
 
 # Load data
 print('Loading data')
-maxSteps = gen.OUTPUT_SHAPE[1]
+maxTimeSteps = gen.OUTPUT_SHAPE[1]
 nFeatures = gen.OUTPUT_SHAPE[0]
 
 # Define graph
@@ -57,12 +57,12 @@ with graph.as_default():
     # NOTE: try variable-steps inputs and dynamic bidirectional rnn, when it's implemented in tensorflow
 
     # Graph input
-    inputX = tf.placeholder(tf.float32, shape=(maxSteps, common.BATCH_SIZE, nFeatures))  # maxSteps*batchSize*nFeatures
+    inputX = tf.placeholder(tf.float32, shape=(maxTimeSteps, common.BATCH_SIZE, nFeatures))  # maxSteps*batchSize*nFeatures
     # Prep input data to fit requirements of rnn.bidirectional_rnn
     # Reshape to 2-D tensor (nTimeSteps*batchSize, nFeatures)
     inputXrs = tf.reshape(inputX, [-1, nFeatures])  # maxTimeSteps*batchSize,nFeatures
     # Split to get a list of 'n_steps' tensors of shape (batch_size, n_hidden)
-    inputList = tf.split(0, maxSteps, inputXrs)  # [(batchSize,nFeatures), (batchSize,nFeatures),...]
+    inputList = tf.split(0, maxTimeSteps, inputXrs)  # [(batchSize,nFeatures), (batchSize,nFeatures),...]
     targetIxs = tf.placeholder(tf.int64)
     targetVals = tf.placeholder(tf.int32)
     targetShape = tf.placeholder(tf.int64)
@@ -106,6 +106,7 @@ with tf.Session(graph=graph) as session:
     tf.initialize_all_variables().run()
     test_input, test_codes = unzip(list(train.read_data_for_lstm_ctc("test/*.png"))[:common.BATCH_SIZE])
     test_input = test_input.swapaxes(0, 1).swapaxes(0, 2)
+    # print("test_input.shape", test_input.shape)
 
     test_batchInputs, test_batchTargetSparse, test_batchSeqLengths = convert_code_to_spare_tensor(test_input,
                                                                                                   test_codes)
@@ -125,7 +126,7 @@ with tf.Session(graph=graph) as session:
     train_list = list()
     for i, (ims, codes) in batch_iter:
         train_list.append((ims, codes))
-        if i > 100:
+        if i > 10000:
             break
 
     for epoch in range(nEpochs):
@@ -139,9 +140,10 @@ with tf.Session(graph=graph) as session:
         for batch_idx, (ims, codes) in enumerate(train_list):
             batchInputs, batchTargetSparse, batchSeqLengths = convert_code_to_spare_tensor(ims, codes)
             batchTargetIxs, batchTargetVals, batchTargetShape = batchTargetSparse
-            # print(batchTargetVals)
+            #print(batchTargetIxs,batchTargetVals,batchTargetShape)
             feedDict = {inputX: batchInputs, targetIxs: batchTargetIxs, targetVals: batchTargetVals,
                         targetShape: batchTargetShape, seqLengths: batchSeqLengths}
+
             _, l, er, lmt = session.run([optimizer, loss, errorRate, logitsMaxTest], feed_dict=feedDict)
             # print(np.unique(lmt))  # print unique argmax values of first sample in batch; should be blank for a while, then spit out target values
             if batch_idx % report_steps == 0:
@@ -156,7 +158,6 @@ with tf.Session(graph=graph) as session:
                     #  if (batch % 1) == 0:
                     #      print('Minibatch', batch, '/', batchOrigI, 'loss:', l)
                     #      print('Minibatch', batch, '/', batchOrigI, 'error rate:', er)
-
                     # batchErrors[batch] = er * len(batchSeqLengths)
 
         """
