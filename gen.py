@@ -45,7 +45,7 @@ from PIL import ImageFont
 
 import common
 
-#fonts = ["fonts/Farrington-7B-Qiqi.ttf", "fonts/Arial.ttf", "fonts/times.ttf"]
+# fonts = ["fonts/Farrington-7B-Qiqi.ttf", "fonts/Arial.ttf", "fonts/times.ttf"]
 fonts = ["fonts/times.ttf"]
 FONT_HEIGHT = 32  # Pixel size to which the chars are resized
 
@@ -138,7 +138,7 @@ def make_affine_transform(from_shape, to_shape,
 
     # Set the scale as large as possible such that the skewed and scaled shape
     # is less than or equal to the desired ratio in either dimension.
-    scale *= numpy.min(to_size / skewed_size)*1.1
+    scale *= numpy.min(to_size / skewed_size) * 1.1
 
     # Set the translation such that the skewed and scaled image falls within
     # the output shape's bounds.
@@ -273,12 +273,13 @@ def generate_ims(num_images):
 
 
 if __name__ == "__main__":
-    if not os.path.exists("test"):
-        os.mkdir("test")
-    # im_gen = generate_ims(int(sys.argv[1]))
-    im_gen = generate_ims(common.TEST_SIZE)
-    for img_idx, (im, c, p) in enumerate(im_gen):
-        fname = "test/{:08d}_{}_{}.png".format(img_idx, c,
-                                               "1" if p else "0")
-        print fname
-        cv2.imwrite(fname, im * 255.)
+    dirs = ["test", "train"]
+    size = {"test": common.TEST_SIZE, "train": common.TRAIN_SIZE}
+    for dir_name in dirs:
+        if not os.path.exists(dir_name):
+            os.mkdir(dir_name)
+        im_gen = generate_ims(size.get(dir_name))
+        for img_idx, (im, c, p) in enumerate(im_gen):
+            fname = dir_name + "/{:08d}_{}_{}.png".format(img_idx, c, "1" if p else "0")
+            print fname
+            cv2.imwrite(fname, im * 255.)

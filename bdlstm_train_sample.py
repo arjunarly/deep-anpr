@@ -24,8 +24,8 @@ import numpy as np
 import common
 import gen
 import train
-from train import read_batches, read_batches_for_bdlstm_ctc, unzip
-from utils import load_batched_data, target_list_to_sparse_tensor, convert_code_to_spare_tensor
+from train import unzip
+from utils import convert_code_to_spare_tensor
 
 # Learning Parameters
 learningRate = 0.001
@@ -36,7 +36,7 @@ nEpochs = 300
 nHidden = gen.OUTPUT_SHAPE[1]
 nClasses = 11  # 11 characters[0,9], plus the "blank" for CTC
 
-report_steps = 50
+report_steps = 5
 
 # Load data
 print('Loading data')
@@ -57,7 +57,8 @@ with graph.as_default():
     # NOTE: try variable-steps inputs and dynamic bidirectional rnn, when it's implemented in tensorflow
 
     # Graph input
-    inputX = tf.placeholder(tf.float32, shape=(maxTimeSteps, common.BATCH_SIZE, nFeatures))  # maxSteps*batchSize*nFeatures
+    inputX = tf.placeholder(tf.float32,
+                            shape=(maxTimeSteps, common.BATCH_SIZE, nFeatures))  # maxSteps*batchSize*nFeatures
     # Prep input data to fit requirements of rnn.bidirectional_rnn
     # Reshape to 2-D tensor (nTimeSteps*batchSize, nFeatures)
     inputXrs = tf.reshape(inputX, [-1, nFeatures])  # maxTimeSteps*batchSize,nFeatures
@@ -120,32 +121,40 @@ with tf.Session(graph=graph) as session:
             [loss, predictions, errorRate, global_step, learning_rate, logitsMaxTest],
             feed_dict=fDict)
         print("step:", steps, "errorRate:", errorRate, "loss:", l, "lr_rate:", lr_rate, "lmt:", np.unique(lmt))
+        print(predictions)
 
 
-    batch_iter = enumerate(read_batches_for_bdlstm_ctc(common.BATCH_SIZE))
-    train_list = list()
-    for i, (ims, codes) in batch_iter:
-        train_list.append((ims, codes))
-        if i > 10000:
-            break
+    #  batch_iter = enumerate(read_batches_for_bdlstm_ctc(common.BATCH_SIZE))
+
+    # train_list = list()
+    # for i, (ims, codes) in batch_iter:
+    #    train_list.append((ims, codes))
+    #    if i > 10000:
+    #        break
+
+    train_input, train_code = unzip(list(train.read_data_for_lstm_ctc("train/*.png")))
+    train_input = train_input.swapaxes(0, 1).swapaxes(0, 2)
+    print("train_input.shape", train_input.shape)
 
     for epoch in range(nEpochs):
         print('Epoch', epoch + 1, '...')
         # batchErrors = np.zeros(len(batchedData))
         # batchRandIxs = np.random.permutation(len(batchedData))  # randomize batch order
-
         last_batch_idx = 0
         last_batch_time = time.time()
 
-        for batch_idx, (ims, codes) in enumerate(train_list):
+        for batch_idx in range(common.BATCHES):
+            ims = train_input[:, (batch_idx * common.BATCH_SIZE):(batch_idx + 1) * common.BATCH_SIZE, :]
+            codes = train_code[(batch_idx * common.BATCH_SIZE):(batch_idx + 1) * common.BATCH_SIZE]
+
             batchInputs, batchTargetSparse, batchSeqLengths = convert_code_to_spare_tensor(ims, codes)
             batchTargetIxs, batchTargetVals, batchTargetShape = batchTargetSparse
-            #print(batchTargetIxs,batchTargetVals,batchTargetShape)
+            # print(batchTargetIxs,batchTargetVals,batchTargetShape)
             feedDict = {inputX: batchInputs, targetIxs: batchTargetIxs, targetVals: batchTargetVals,
                         targetShape: batchTargetShape, seqLengths: batchSeqLengths}
 
             _, l, er, lmt = session.run([optimizer, loss, errorRate, logitsMaxTest], feed_dict=feedDict)
-            # print(np.unique(lmt))  # print unique argmax values of first sample in batch; should be blank for a while, then spit out target values
+            print(np.unique(lmt))  # print unique argmax values of first sample in batch; should be blank for a while, then spit out target values
             if batch_idx % report_steps == 0:
                 do_report()
                 batch_time = time.time()
