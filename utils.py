@@ -6,6 +6,10 @@ import gen
 import train
 from train import read_batches_for_bdlstm_ctc, unzip
 
+"""
+   targetList list of
+"""
+
 
 def target_list_to_sparse_tensor(targetList):
     '''make tensorflow SparseTensor from list of targets, with each element
@@ -43,20 +47,16 @@ def test_edit_distance():
     inputList has the shape (steps*batchSize*nFeatures)
 """
 
-"""
-    inputList is the batchSize *
-"""
-
 
 def convert_code_to_spare_tensor(inputList, targetList):
     assert inputList.shape[1] == len(targetList)
-    #print "inputList.shape", inputList.shape
+    # print "inputList.shape", inputList.shape
     batch_size = len(targetList)
     # maxSteps = common.LENGTH
     # print "maxSteps", maxSteps
-    batchSeqLengths = np.ones(batch_size) * gen.OUTPUT_SHAPE[1] # the number of timesteps for each sample in batch
+    batchSeqLengths = np.ones(batch_size) * gen.OUTPUT_SHAPE[1]  # the number of timesteps for each sample in batch
 
-    #print batchSeqLengths
+    # print batchSeqLengths
     # print batchSeqLengths
     return (inputList, target_list_to_sparse_tensor(targetList), batchSeqLengths)
 
@@ -124,6 +124,36 @@ def load_batched_data(specPath, targetPath, batchSize):
            (len(os.listdir(specPath)),)
 
 
+def decode_a_seq(indexes, spars_tensor):
+    str_decoded = ''.join([str(spars_tensor[1][m]) for m in indexes])
+    # Replacing blank label to none
+    str_decoded = str_decoded.replace(chr(ord('9') + 1), '')
+    # Replacing space label to space
+    str_decoded = str_decoded.replace(chr(ord('0') - 1), ' ')
+    # print("ffffffff", str_decoded)
+    return str_decoded
+
+
+def decode_sparse_tensor(sparse_tensor):
+    print(sparse_tensor)
+    decoded_indexes = list()
+    current_i = 0
+    current_seq = []
+    for offset, i_and_index in enumerate(sparse_tensor[0]):
+        i = i_and_index[0]
+        if i != current_i:
+            decoded_indexes.append(current_seq)
+            current_i = i
+            current_seq = list()
+        current_seq.append(offset)
+    decoded_indexes.append(current_seq)
+    # print("mmmm", decoded_indexes)
+    result = []
+    for index in decoded_indexes:
+        result.append(decode_a_seq(index, sparse_tensor))
+    return result
+
+
 if __name__ == '__main__':
     """
     INPUT_PATH = './sample_data/mfcc/'  # directory of MFCC nFeatures x nFrames 2-D array .npy files
@@ -142,8 +172,10 @@ if __name__ == '__main__':
         print code
         break
     """
-    test_input, test_code = unzip(list(train.read_data_for_lstm_ctc("test/*.png"))[:4])
+    test_input, test_code = unzip(list(train.read_data_for_lstm_ctc("test/*.png"))[0:4])
     t = test_input.swapaxes(0, 1).swapaxes(0, 2)
     print test_code
     a, b, c = convert_code_to_spare_tensor(t, test_code)
-    print target_list_to_sparse_tensor(test_code)
+    dd = target_list_to_sparse_tensor(test_code)
+
+    print(decode_sparse_tensor(dd))

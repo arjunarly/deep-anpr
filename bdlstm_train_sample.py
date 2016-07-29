@@ -117,8 +117,8 @@ with tf.Session(graph=graph) as session:
         l, pred, steps, lr_rate, lmt = session.run(
             [loss, predictions[0], global_step, learning_rate, logitsMaxTest],
             feed_dict=fDict)
-        print("step:", steps, "errorRate:", "loss:", l, "lr_rate:", lr_rate, "lmt:", np.unique(lmt))
-        print(np.asarray(pred[1]))
+        print("step:", steps, "errorRate:", "loss:", l, "lr_rate:", lr_rate)
+        print(decode_sparse_tensor(pred))
 
 
     train_input, train_code = unzip(list(train.read_data_for_lstm_ctc("train/*.png")))
@@ -159,21 +159,3 @@ with tf.Session(graph=graph) as session:
                     #      print('Minibatch', batch, '/', batchOrigI, 'error rate:', er)
                     # batchErrors[batch] = er * len(batchSeqLengths)
 
-        """
-        for batch, batchOrigI in enumerate(batchRandIxs):
-            batchInputs, batchTargetSparse, batchSeqLengths = batchedData[batchOrigI]
-            batchTargetIxs, batchTargetVals, batchTargetShape = batchTargetSparse
-            print(batchTargetVals)
-            feedDict = {inputX: batchInputs, targetIxs: batchTargetIxs, targetVals: batchTargetVals,
-                        targetShape: batchTargetShape, seqLengths: batchSeqLengths}
-            _, l, er, lmt = session.run([optimizer, loss, errorRate, logitsMaxTest], feed_dict=feedDict)
-            # print(predictions)
-            print(np.unique(
-                lmt))  # print unique argmax values of first sample in batch; should be blank for a while, then spit out target values
-            if (batch % 1) == 0:
-                print('Minibatch', batch, '/', batchOrigI, 'loss:', l)
-                print('Minibatch', batch, '/', batchOrigI, 'error rate:', er)
-            batchErrors[batch] = er * len(batchSeqLengths)
-        """
-        # epochErrorRate = batchErrors.sum() / totalN
-        # print('Epoch', epoch + 1, 'error rate:', epochErrorRate)
