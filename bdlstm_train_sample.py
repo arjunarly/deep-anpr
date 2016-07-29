@@ -94,7 +94,7 @@ with graph.as_default():
 
     # Evaluating
     logitsMaxTest = tf.slice(tf.argmax(logits3d, 2), [0, 0], [seqLengths[0], 1])
-    predictions = ctc.ctc_beam_search_decoder(logits3d, seqLengths)[0]
+    predictions, log_probabilities = ctc.ctc_beam_search_decoder(logits3d, seqLengths)
     # errorRate = tf.reduce_sum(tf.edit_distance(predictions, targetY, normalize=False)) / tf.to_float(
     #    tf.size(targetY.values))
 
@@ -115,19 +115,11 @@ with tf.Session(graph=graph) as session:
         fDict = {inputX: test_batchInputs, targetIxs: test_batchTargetIxs, targetVals: test_batchTargetVals,
                  targetShape: test_batchTargetShape, seqLengths: test_batchSeqLengths}
         l, pred, steps, lr_rate, lmt = session.run(
-            [loss, predictions, global_step, learning_rate, logitsMaxTest],
+            [loss, predictions[0], global_step, learning_rate, logitsMaxTest],
             feed_dict=fDict)
         print("step:", steps, "errorRate:", "loss:", l, "lr_rate:", lr_rate, "lmt:", np.unique(lmt))
         print(np.asarray(pred[1]))
 
-
-    #  batch_iter = enumerate(read_batches_for_bdlstm_ctc(common.BATCH_SIZE))
-
-    # train_list = list()
-    # for i, (ims, codes) in batch_iter:
-    #    train_list.append((ims, codes))
-    #    if i > 10000:
-    #        break
 
     train_input, train_code = unzip(list(train.read_data_for_lstm_ctc("train/*.png")))
     train_input = train_input.swapaxes(0, 1).swapaxes(0, 2)
