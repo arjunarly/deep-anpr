@@ -11,9 +11,6 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import glob
-
-import cv2
 import tensorflow as tf
 import time
 from tensorflow.contrib.ctc import ctc_ops as ctc
@@ -33,8 +30,8 @@ momentum = 0.9
 nEpochs = 300
 
 # Network Parameters
-nHidden = gen.OUTPUT_SHAPE[1]
-nClasses = 11  # 11 characters[0,9], plus the "blank" for CTC
+nHidden = 128
+nClasses = 12  # 11 characters[0,9], plus the "blank" for CTC
 
 report_steps = 5
 
@@ -97,9 +94,9 @@ with graph.as_default():
 
     # Evaluating
     logitsMaxTest = tf.slice(tf.argmax(logits3d, 2), [0, 0], [seqLengths[0], 1])
-    predictions = tf.to_int32(ctc.ctc_beam_search_decoder(logits3d, seqLengths)[0][0])
-    errorRate = tf.reduce_sum(tf.edit_distance(predictions, targetY, normalize=False)) / tf.to_float(
-        tf.size(targetY.values))
+    predictions = ctc.ctc_beam_search_decoder(logits3d, seqLengths)[0]
+    # errorRate = tf.reduce_sum(tf.edit_distance(predictions, targetY, normalize=False)) / tf.to_float(
+    #    tf.size(targetY.values))
 
 # Run session
 with tf.Session(graph=graph) as session:
@@ -117,11 +114,11 @@ with tf.Session(graph=graph) as session:
     def do_report():
         fDict = {inputX: test_batchInputs, targetIxs: test_batchTargetIxs, targetVals: test_batchTargetVals,
                  targetShape: test_batchTargetShape, seqLengths: test_batchSeqLengths}
-        l, pred, errR, steps, lr_rate, lmt = session.run(
-            [loss, predictions, errorRate, global_step, learning_rate, logitsMaxTest],
+        l, pred, steps, lr_rate, lmt = session.run(
+            [loss, predictions, global_step, learning_rate, logitsMaxTest],
             feed_dict=fDict)
-        print("step:", steps, "errorRate:", errorRate, "loss:", l, "lr_rate:", lr_rate, "lmt:", np.unique(lmt))
-        print(predictions)
+        print("step:", steps, "errorRate:", "loss:", l, "lr_rate:", lr_rate, "lmt:", np.unique(lmt))
+        print(np.asarray(pred[1]))
 
 
     #  batch_iter = enumerate(read_batches_for_bdlstm_ctc(common.BATCH_SIZE))
@@ -153,8 +150,9 @@ with tf.Session(graph=graph) as session:
             feedDict = {inputX: batchInputs, targetIxs: batchTargetIxs, targetVals: batchTargetVals,
                         targetShape: batchTargetShape, seqLengths: batchSeqLengths}
 
-            _, l, er, lmt = session.run([optimizer, loss, errorRate, logitsMaxTest], feed_dict=feedDict)
-            print(np.unique(lmt))  # print unique argmax values of first sample in batch; should be blank for a while, then spit out target values
+            _, l, lmt = session.run([optimizer, loss, logitsMaxTest], feed_dict=feedDict)
+            print(np.unique(
+                lmt))  # print unique argmax values of first sample in batch; should be blank for a while, then spit out target values
             if batch_idx % report_steps == 0:
                 do_report()
                 batch_time = time.time()
