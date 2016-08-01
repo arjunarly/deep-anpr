@@ -22,7 +22,7 @@ import common
 import gen
 import train
 from train import unzip
-from utils import convert_code_to_spare_tensor
+from utils import convert_code_to_spare_tensor, decode_sparse_tensor
 
 # Learning Parameters
 learningRate = 0.001
@@ -30,7 +30,7 @@ momentum = 0.9
 nEpochs = 300
 
 # Network Parameters
-nHidden = 128
+nHidden = 64
 nClasses = 12  # 11 characters[0,9], plus the "blank" for CTC
 
 report_steps = 5
@@ -94,7 +94,7 @@ with graph.as_default():
 
     # Evaluating
     logitsMaxTest = tf.slice(tf.argmax(logits3d, 2), [0, 0], [seqLengths[0], 1])
-    predictions, log_probabilities = ctc.ctc_beam_search_decoder(logits3d, seqLengths)
+    predictions, log_probabilities = ctc.ctc_beam_search_decoder(logits3d, seqLengths, merge_repeated=False)
     # errorRate = tf.reduce_sum(tf.edit_distance(predictions, targetY, normalize=False)) / tf.to_float(
     #    tf.size(targetY.values))
 
@@ -158,4 +158,3 @@ with tf.Session(graph=graph) as session:
                     #      print('Minibatch', batch, '/', batchOrigI, 'loss:', l)
                     #      print('Minibatch', batch, '/', batchOrigI, 'error rate:', er)
                     # batchErrors[batch] = er * len(batchSeqLengths)
-
